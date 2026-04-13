@@ -55,7 +55,7 @@ enum ChimeSdkSetup {
 
         // ── Audio ──────────────────────────────────────────────────────────────
         ChimeSdkBridge.shared.setMuteNative = { shouldMute in
-            meeting.setMute(shouldMute)
+            meeting.setMute(shouldMute.boolValue)
         }
 
         ChimeSdkBridge.shared.switchAudioDeviceNative = { deviceId in
@@ -64,7 +64,7 @@ enum ChimeSdkSetup {
 
         // ── Messaging ──────────────────────────────────────────────────────────
         ChimeSdkBridge.shared.sendRealtimeMessageNative = { topic, data, lifetimeMs in
-            meeting.sendRealtimeMessage(topic: topic, data: data, lifetimeMs: Int(lifetimeMs))
+            meeting.sendRealtimeMessage(topic: topic, data: data, lifetimeMs: Int(truncating: lifetimeMs))
         }
     }
 }

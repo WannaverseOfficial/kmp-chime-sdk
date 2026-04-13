@@ -1,6 +1,7 @@
 import Foundation
 import AmazonChimeSDK
 import AVFoundation
+import ComposeApp
 
 /// Full Amazon Chime SDK implementation for iOS.
 /// Registered with the Kotlin bridge in ChimeSdkSetup.configure().
@@ -97,10 +98,12 @@ class ChimeMeeting: NSObject {
             meetingSession?.audioVideo.chooseAudioDevice(mediaDevice: devices[0])
         }
 
-        // Request camera permission then start
-        AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-            DispatchQueue.main.async {
-                self?.startAudioAndVideo()
+        // Request microphone then camera permission, then start
+        AVAudioSession.sharedInstance().requestRecordPermission { [weak self] _ in
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] _ in
+                DispatchQueue.main.async {
+                    self?.startAudioAndVideo()
+                }
             }
         }
     }
@@ -110,7 +113,7 @@ class ChimeMeeting: NSObject {
             try AVAudioSession.sharedInstance().setCategory(
                 .playAndRecord,
                 mode: .videoChat,
-                options: [.allowBluetooth, .allowBluetoothA2DP]
+                options: [.allowBluetoothHFP, .allowBluetoothA2DP]
             )
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
@@ -202,10 +205,10 @@ class ChimeMeeting: NSObject {
     }
 
     func sendRealtimeMessage(topic: String, data: String, lifetimeMs: Int) {
-        meetingSession?.audioVideo.realtimeSendDataMessage(
+        try? meetingSession?.audioVideo.realtimeSendDataMessage(
             topic: topic,
             data: data,
-            lifetimeMs: lifetimeMs
+            lifetimeMs: Int32(lifetimeMs)
         )
     }
 }
@@ -235,7 +238,7 @@ extension ChimeMeeting: AudioVideoObserver {
         let message: String
         switch sessionStatus.statusCode {
         case .ok: message = "Meeting ended"
-        case .audioServerHungUp: message = "Server disconnected"
+        case .audioServerHungup: message = "Server disconnected"
         case .audioJoinedFromAnotherDevice: message = "Joined from another device"
         default: message = "Session ended: \(sessionStatus.statusCode)"
         }

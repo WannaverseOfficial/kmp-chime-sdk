@@ -121,23 +121,23 @@ private class IOSDelegateToCallbacks(
     }
 
     override fun onLocalAttendeeIdAvailable(attendeeId: String) {
-        onLocalAttendeeIdAvailable(attendeeId)
+        onLocalAttendeeIdAvailable.invoke(attendeeId)
     }
 
     override fun onVideoNeedsRestart() {
-        onVideoNeedsRestart()
+        onVideoNeedsRestart.invoke()
     }
 
     override fun onCameraSendAvailable(available: Boolean) {
-        onCameraSendAvailable(available)
+        onCameraSendAvailable.invoke(available)
     }
 
     override fun onRemoteVideoAvailable(isAvailable: Boolean, sourceCount: Int) {
-        onRemoteVideoAvailable(isAvailable, sourceCount)
+        onRemoteVideoAvailable.invoke(isAvailable, sourceCount)
     }
 
     override fun onSessionError(message: String, isRecoverable: Boolean) {
-        onSessionError(message, isRecoverable)
+        onSessionError.invoke(message, isRecoverable)
     }
 
     override fun onAttendeesJoined(attendeeIds: List<String>) {
