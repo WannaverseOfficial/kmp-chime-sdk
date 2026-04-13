@@ -18,7 +18,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun App(viewModel: AppViewModel = viewModel { AppViewModel() }) {
+fun App(
+    initialMeetingInfo: MeetingInformation = MeetingInformation(),
+    viewModel: AppViewModel = viewModel { AppViewModel(initialMeetingInfo) }
+) {
     val state by viewModel.callState.collectAsStateWithLifecycle()
     val info by viewModel.meetingInfo.collectAsStateWithLifecycle()
     val chatInput by viewModel.chatInput.collectAsStateWithLifecycle()

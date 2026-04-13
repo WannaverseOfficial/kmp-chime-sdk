@@ -29,12 +29,14 @@ data class CallState(
     val cameraFacing: CameraFacing = CameraFacing.FRONT
 )
 
-class AppViewModel : ViewModel(), RealTimeEventListener {
+class AppViewModel(
+    initialInfo: MeetingInformation = MeetingInformation()
+) : ViewModel(), RealTimeEventListener {
 
     private val _callState = MutableStateFlow(CallState())
     val callState: StateFlow<CallState> = _callState.asStateFlow()
 
-    private val _meetingInfo = MutableStateFlow(MeetingInformation())
+    private val _meetingInfo = MutableStateFlow(initialInfo)
     val meetingInfo: StateFlow<MeetingInformation> = _meetingInfo.asStateFlow()
 
     private val _chatInput = MutableStateFlow("")
