@@ -1,12 +1,13 @@
 import Foundation
 import AmazonChimeSDK
+import ComposeApp
 
 /// Manages video tile binding between Chime SDK tiles and pre-created render views.
 class VideoTileManager: NSObject, VideoTileObserver {
 
     private let localView: DefaultVideoRenderView
     private let remoteView: DefaultVideoRenderView
-    private weak var audioVideo: AudioVideoControllerFacade?
+    private weak var audioVideo: (any AudioVideoFacade)?
 
     private var localTileId: Int?
     private var remoteTileId: Int?
@@ -14,7 +15,7 @@ class VideoTileManager: NSObject, VideoTileObserver {
     init(
         localView: DefaultVideoRenderView,
         remoteView: DefaultVideoRenderView,
-        audioVideo: AudioVideoControllerFacade
+        audioVideo: any AudioVideoFacade
     ) {
         self.localView = localView
         self.remoteView = remoteView
