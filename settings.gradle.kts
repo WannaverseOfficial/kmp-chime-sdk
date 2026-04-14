@@ -1,5 +1,4 @@
 rootProject.name = "ChimeSDK"
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
@@ -28,4 +27,5 @@ dependencyResolutionManagement {
     }
 }
 
-include(":composeApp")
+include(":chime-sdk")
+include(":demo")
