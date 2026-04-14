@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>MeetingInformation</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+            <a class="library-name--link" href="../../../index.html">
+                    chime-sdk
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+0.0.0        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":chime-sdk:dokkaHtml/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
+                        data-role="dropdown-toggle"
+                        aria-controls="platform-tags-listbox"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Toggle source sets"
+                ></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":chime-sdk:dokkaHtml/commonMain"
+                                       data-filter=":chime-sdk:dokkaHtml/commonMain"/>
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                        data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    chime-sdk
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="chime-sdk::com.wannaverse.chimesdk/MeetingInformation///PointingToDeclaration//435441865">
+  <div class="breadcrumbs"><a href="../../../index.html">chime-sdk</a><span class="delimiter">/</span><a href="../index.html">com.wannaverse.chimesdk</a><span class="delimiter">/</span><span class="current">MeetingInformation</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Meeting</span><wbr></wbr><span><span>Information</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="index.html">MeetingInformation</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>externalMeetingId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>meetingId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>audioHostURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>audioFallbackURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>turnControlURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>signalingURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ingestionURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>attendeeId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>externalUserId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>joinToken<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">All credentials required to join a Chime meeting as a single attendee.</p><p class="paragraph">Obtain these values from the AWS Chime SDK <code class="lang-kotlin">CreateMeeting</code> and <code class="lang-kotlin">CreateAttendee</code> API responses.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-399321227%2FConstructors%2F435441865" anchor-label="MeetingInformation" id="-399321227%2FConstructors%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-meeting-information.html"><span>Meeting</span><wbr></wbr><span><span>Information</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-399321227%2FConstructors%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">externalMeetingId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">meetingId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">audioHostURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">audioFallbackURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">turnControlURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">signalingURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">ingestionURL<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">attendeeId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">externalUserId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span><span class="token punctuation">, </span></span><span class="parameter ">joinToken<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator"> = </span><span class="token string">&quot;&quot;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-292961480%2FProperties%2F435441865" anchor-label="attendeeId" id="-292961480%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="attendee-id.html"><span>attendee</span><wbr></wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-292961480%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="attendee-id.html">attendeeId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Chime attendee ID returned by CreateAttendee.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1287064714%2FProperties%2F435441865" anchor-label="audioFallbackURL" id="-1287064714%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="audio-fallback-u-r-l.html"><span>audio</span><wbr></wbr><span>Fallback</span><wbr></wbr><span><span>URL</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1287064714%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="audio-fallback-u-r-l.html">audioFallbackURL</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">WebSocket fallback URL used when UDP is blocked.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1250684868%2FProperties%2F435441865" anchor-label="audioHostURL" id="-1250684868%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="audio-host-u-r-l.html"><span>audio</span><wbr></wbr><span>Host</span><wbr></wbr><span><span>URL</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1250684868%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="audio-host-u-r-l.html">audioHostURL</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Media server host for audio (UDP/SRTP).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-226407006%2FProperties%2F435441865" anchor-label="externalMeetingId" id="-226407006%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="external-meeting-id.html"><span>external</span><wbr></wbr><span>Meeting</span><wbr></wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-226407006%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="external-meeting-id.html">externalMeetingId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Your app-defined meeting identifier.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="179139644%2FProperties%2F435441865" anchor-label="externalUserId" id="179139644%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="external-user-id.html"><span>external</span><wbr></wbr><span>User</span><wbr></wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="179139644%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="external-user-id.html">externalUserId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Your app-defined user identifier.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1285980098%2FProperties%2F435441865" anchor-label="ingestionURL" id="1285980098%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="ingestion-u-r-l.html"><span>ingestion</span><wbr></wbr><span><span>URL</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1285980098%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="ingestion-u-r-l.html">ingestionURL</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Client event ingestion endpoint.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1196436574%2FProperties%2F435441865" anchor-label="joinToken" id="1196436574%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="join-token.html"><span>join</span><wbr></wbr><span><span>Token</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1196436574%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="join-token.html">joinToken</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Attendee join token returned by CreateAttendee.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="993054839%2FProperties%2F435441865" anchor-label="meetingId" id="993054839%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="meeting-id.html"><span>meeting</span><wbr></wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="993054839%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="meeting-id.html">meetingId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">Chime meeting ID returned by CreateMeeting.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1249023016%2FProperties%2F435441865" anchor-label="signalingURL" id="-1249023016%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="signaling-u-r-l.html"><span>signaling</span><wbr></wbr><span><span>URL</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1249023016%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="signaling-u-r-l.html">signalingURL</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">WebSocket signaling endpoint.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1440759618%2FProperties%2F435441865" anchor-label="turnControlURL" id="-1440759618%2FProperties%2F435441865" data-filterable-set=":chime-sdk:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/commonMain" data-filterable-set=":chime-sdk:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="turn-control-u-r-l.html"><span>turn</span><wbr></wbr><span>Control</span><wbr></wbr><span><span>URL</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1440759618%2FProperties%2F435441865"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="turn-control-u-r-l.html">turnControlURL</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">TURN credential endpoint.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2026 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
