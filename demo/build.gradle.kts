@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -14,7 +13,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -22,19 +21,19 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            // Export chime-sdk so its declarations are visible in the iOS framework
+            export(project(":chime-sdk"))
         }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
-
-            implementation(libs.amazon.chime.sdk)
-            implementation(libs.amazon.chime.sdk.media)
         }
         commonMain.dependencies {
-            implementation(libs.kermit)
+            // Use api() so chime-sdk is exported into the iOS framework
+            api(project(":chime-sdk"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -51,7 +50,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.wannaverse.chimesdk"
+    namespace = "com.wannaverse.chimesdk.demo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -80,4 +79,3 @@ android {
 dependencies {
     debugImplementation(libs.compose.uiTooling)
 }
-
