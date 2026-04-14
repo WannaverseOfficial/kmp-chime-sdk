@@ -1,3 +1,4 @@
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -14,32 +15,23 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        publishLibraryVariants("release")
+        publishLibraryVariantsGroupedByFlavor = true
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ChimeSDK"
-            isStatic = true
-        }
-    }
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         androidMain.dependencies {
             implementation(libs.amazon.chime.sdk)
             implementation(libs.amazon.chime.sdk.media)
-            implementation(libs.compose.uiToolingPreview)
         }
         commonMain.dependencies {
-            implementation(libs.kermit)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
         }
     }
 }
@@ -66,8 +58,8 @@ mavenPublishing {
 
     pom {
         name = "kmp-chime-sdk"
-        description = "A library to integrate Amazon ChimeSDK"
-        inceptionYear = "2025"
+        description = "A library to integrate Amazon ChimeSDK into Kotlin Multiplatform"
+        inceptionYear = "2026"
         url = "https://github.com/WannaverseOfficial/kmp-chime-sdk"
         licenses {
             license {
