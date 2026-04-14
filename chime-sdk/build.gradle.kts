@@ -23,10 +23,9 @@ kotlin {
         publishLibraryVariantsGroupedByFlavor = true
     }
 
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-
+    // linkOnly = true: pod is installed and built (for linking), but the cocoapods plugin
+    // does NOT generate the cinterop klib — we do that explicitly in each target block below
+    // so it is properly wired to the compile classpath (auto-wiring is broken in Kotlin 2.3.x).
     cocoapods {
         summary = "KMP wrapper for Amazon ChimeSDK"
         homepage = "https://github.com/WannaverseOfficial/kmp-chime-sdk"
@@ -35,6 +34,51 @@ kotlin {
 
         pod("AmazonChimeSDK") {
             version = "~> 0.25.0"
+            linkOnly = true
+        }
+    }
+
+    val podsDir = "${layout.buildDirectory.asFile.get()}/cocoapods/synthetic/ios/Pods"
+    val simSlice = "ios-arm64_x86_64-simulator"
+    val devSlice = "ios-arm64"
+
+    iosX64 {
+        compilations["main"].cinterops {
+            val AmazonChimeSDK by creating {
+                defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
+                packageName("cocoapods.AmazonChimeSDK")
+                compilerOpts(
+                    "-fmodules",
+                    "-F", "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$simSlice",
+                    "-F", "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$simSlice"
+                )
+            }
+        }
+    }
+    iosArm64 {
+        compilations["main"].cinterops {
+            val AmazonChimeSDK by creating {
+                defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
+                packageName("cocoapods.AmazonChimeSDK")
+                compilerOpts(
+                    "-fmodules",
+                    "-F", "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$devSlice",
+                    "-F", "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$devSlice"
+                )
+            }
+        }
+    }
+    iosSimulatorArm64 {
+        compilations["main"].cinterops {
+            val AmazonChimeSDK by creating {
+                defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
+                packageName("cocoapods.AmazonChimeSDK")
+                compilerOpts(
+                    "-fmodules",
+                    "-F", "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$simSlice",
+                    "-F", "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$simSlice"
+                )
+            }
         }
     }
 
@@ -96,6 +140,16 @@ mavenPublishing {
             developerConnection = "scm:git:ssh://git@github.com/WannaverseOfficial/kmp-chime-sdk.git"
         }
     }
+}
+
+// Ensure the pod framework is built before our cinterop tasks process its headers.
+afterEvaluate {
+    tasks.findByName("cinteropAmazonChimeSDKIosSimulatorArm64")
+        ?.dependsOn("podBuildAmazonChimeSDKIosSimulator")
+    tasks.findByName("cinteropAmazonChimeSDKIosX64")
+        ?.dependsOn("podBuildAmazonChimeSDKIosSimulator")
+    tasks.findByName("cinteropAmazonChimeSDKIosArm64")
+        ?.dependsOn("podBuildAmazonChimeSDKIos")
 }
 
 tasks.dokkaHtml {

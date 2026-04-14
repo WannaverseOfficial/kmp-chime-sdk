@@ -3,17 +3,22 @@
 package com.wannaverse.chimesdk
 
 import cocoapods.AmazonChimeSDK.*
+import platform.AVFAudio.*
 import platform.AVFoundation.*
-import platform.Foundation.NSOperationQueue
+import platform.Foundation.*
 import platform.UIKit.UIView
+import platform.darwin.NSObject
 
-internal object chimeMeeting : NSObject(),
-    AudioVideoObserver,
-    RealtimeObserver,
-    VideoTileObserver,
-    DeviceChangeObserver,
-    ActiveSpeakerObserver,
-    DataMessageObserver {
+// Kotlin `object` cannot extend ObjC classes — use a class with a top-level singleton val.
+internal val chimeMeeting = ChimeMeetingImpl()
+
+internal class ChimeMeetingImpl : NSObject(),
+    AudioVideoObserverProtocol,
+    RealtimeObserverProtocol,
+    VideoTileObserverProtocol,
+    DeviceChangeObserverProtocol,
+    ActiveSpeakerObserverProtocol,
+    DataMessageObserverProtocol {
 
     private var meetingSession: DefaultMeetingSession? = null
     private var isFrontCamera = true
@@ -23,7 +28,7 @@ internal object chimeMeeting : NSObject(),
     private val remoteTiles: MutableMap<Long, DefaultVideoRenderView> = mutableMapOf()
     private val attendeeTileMap: MutableMap<String, Long> = mutableMapOf()
 
-    val localRenderView: DefaultVideoRenderView = DefaultVideoRenderView().also { it.mirror = true }
+    val localRenderView: DefaultVideoRenderView = DefaultVideoRenderView().also { it.setMirror(true) }
     var onConnectionStatusChanged: ((ConnectionStatus) -> Unit)? = null
     var onActiveSpeakersChanged: ((Set<String>) -> Unit)? = null
     var onLocalVideoTileAdded: ((Int?) -> Unit)? = null
@@ -38,7 +43,7 @@ internal object chimeMeeting : NSObject(),
     var realTimeListener: RealTimeEventListener? = null
     val topicListeners: MutableMap<String, (TextMessage) -> Unit> = mutableMapOf()
 
-    override val observerId: String get() = "KotlinChimeMeeting"
+    override fun observerId(): String = "KotlinChimeMeeting"
 
     fun getRemoteView(tileId: Int): UIView? = remoteTiles[tileId.toLong()]
 
@@ -54,7 +59,7 @@ internal object chimeMeeting : NSObject(),
         externalUserId: String,
         joinToken: String
     ) {
-        val logger = ConsoleLogger(name = "ChimeMeetingImpl", level = LogLevel.INFO)
+        val logger = ConsoleLogger(name = "ChimeMeetingImpl", level = LogLevelINFO)
 
         val credentials = MeetingSessionCredentials(
             attendeeId = attendeeId,
@@ -83,11 +88,11 @@ internal object chimeMeeting : NSObject(),
         val session = DefaultMeetingSession(configuration = configuration, logger = logger)
         meetingSession = session
 
-        session.audioVideo.addVideoTileObserver(observer = this)
-        session.audioVideo.addAudioVideoObserver(observer = this)
-        session.audioVideo.addRealtimeObserver(observer = this)
-        session.audioVideo.addDeviceChangeObserver(observer = this)
-        session.audioVideo.addActiveSpeakerObserver(
+        session.audioVideo().addVideoTileObserverWithObserver(observer = this)
+        session.audioVideo().addAudioVideoObserverWithObserver(observer = this)
+        session.audioVideo().addRealtimeObserverWithObserver(observer = this)
+        session.audioVideo().addDeviceChangeObserverWithObserver(observer = this)
+        session.audioVideo().addActiveSpeakerObserverWithPolicy(
             policy = DefaultActiveSpeakerPolicy(),
             observer = this
         )
@@ -95,12 +100,12 @@ internal object chimeMeeting : NSObject(),
         onLocalAttendeeIdAvailable?.invoke(attendeeId)
         configureAudioSession()
 
-        session.audioVideo.listAudioDevices().firstOrNull()?.let {
-            session.audioVideo.chooseAudioDevice(mediaDevice = it)
+        session.audioVideo().listAudioDevices().filterIsInstance<MediaDevice>().firstOrNull()?.let {
+            session.audioVideo().chooseAudioDeviceWithMediaDevice(mediaDevice = it)
         }
 
-        AVAudioSession.sharedInstance().requestRecordPermission { _ ->
-            AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { _ ->
+        AVAudioSession.sharedInstance().requestRecordPermission { _: Boolean ->
+            AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { _: Boolean ->
                 NSOperationQueue.mainQueue.addOperationWithBlock {
                     startAudioAndVideo()
                 }
@@ -123,14 +128,14 @@ internal object chimeMeeting : NSObject(),
     private fun startAudioAndVideo() {
         val session = meetingSession ?: return
         try {
-            session.audioVideo.start()
+            session.audioVideo().startAndReturnError(error = null)
         } catch (e: Throwable) {
             onSessionError?.invoke("Failed to start audio: ${e.message}", false)
             return
         }
-        session.audioVideo.startRemoteVideo()
+        session.audioVideo().startRemoteVideo()
         try {
-            session.audioVideo.startLocalVideo()
+            session.audioVideo().startLocalVideoAndReturnError(error = null)
         } catch (e: Throwable) {
             println("ChimeMeetingImpl: local video start failed: ${e.message}")
         }
@@ -138,16 +143,16 @@ internal object chimeMeeting : NSObject(),
 
     fun leave() {
         val session = meetingSession ?: return
-        session.audioVideo.stopLocalVideo()
-        session.audioVideo.stopRemoteVideo()
-        session.audioVideo.stop()
-        session.audioVideo.removeVideoTileObserver(observer = this)
-        session.audioVideo.removeAudioVideoObserver(observer = this)
-        session.audioVideo.removeRealtimeObserver(observer = this)
-        session.audioVideo.removeDeviceChangeObserver(observer = this)
-        session.audioVideo.removeActiveSpeakerObserver(observer = this)
+        session.audioVideo().stopLocalVideo()
+        session.audioVideo().stopRemoteVideo()
+        session.audioVideo().stop()
+        session.audioVideo().removeVideoTileObserverWithObserver(observer = this)
+        session.audioVideo().removeAudioVideoObserverWithObserver(observer = this)
+        session.audioVideo().removeRealtimeObserverWithObserver(observer = this)
+        session.audioVideo().removeDeviceChangeObserverWithObserver(observer = this)
+        session.audioVideo().removeActiveSpeakerObserverWithObserver(observer = this)
         subscribedTopics.forEach {
-            session.audioVideo.removeRealtimeDataMessageObserverFromTopic(topic = it)
+            session.audioVideo().removeRealtimeDataMessageObserverFromTopicWithTopic(topic = it)
         }
         subscribedTopics.clear()
         meetingSession = null
@@ -176,44 +181,43 @@ internal object chimeMeeting : NSObject(),
 
     fun startLocalVideo() {
         try {
-            meetingSession?.audioVideo?.startLocalVideo()
+            meetingSession?.audioVideo()?.startLocalVideoAndReturnError(error = null)
         } catch (e: Throwable) {
             println("ChimeMeetingImpl: startLocalVideo failed: ${e.message}")
         }
     }
 
     fun stopLocalVideo() {
-        meetingSession?.audioVideo?.stopLocalVideo()
+        meetingSession?.audioVideo()?.stopLocalVideo()
     }
 
     fun switchCamera() {
         val session = meetingSession ?: return
-        val desired = if (isFrontCamera) MediaDeviceType.videoBackCamera else MediaDeviceType.videoFrontCamera
-        if (MediaDevice.listVideoDevices().any { it.type == desired }) {
-            isFrontCamera = !isFrontCamera
-            session.audioVideo.switchCamera()
-        }
+        isFrontCamera = !isFrontCamera
+        session.audioVideo().switchCamera()
     }
 
     fun setMute(shouldMute: Boolean) {
-        if (shouldMute) meetingSession?.audioVideo?.realtimeLocalMute()
-        else meetingSession?.audioVideo?.realtimeLocalUnmute()
+        if (shouldMute) meetingSession?.audioVideo()?.realtimeLocalMute()
+        else meetingSession?.audioVideo()?.realtimeLocalUnmute()
     }
 
     fun switchAudioDevice(deviceId: String?) {
         val id = deviceId ?: return
-        meetingSession?.audioVideo
+        meetingSession?.audioVideo()
             ?.listAudioDevices()
-            ?.firstOrNull { it.label == id }
-            ?.let { meetingSession?.audioVideo?.chooseAudioDevice(mediaDevice = it) }
+            ?.filterIsInstance<MediaDevice>()
+            ?.firstOrNull { it.label() == id }
+            ?.let { meetingSession?.audioVideo()?.chooseAudioDeviceWithMediaDevice(mediaDevice = it) }
     }
 
     fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) {
         try {
-            meetingSession?.audioVideo?.realtimeSendDataMessage(
+            meetingSession?.audioVideo()?.realtimeSendDataMessageWithTopic(
                 topic = topic,
                 data = data,
-                lifetimeMs = lifetimeMs.toInt()
+                lifetimeMs = lifetimeMs.toInt(),
+                error = null
             )
         } catch (e: Throwable) {
             println("ChimeMeetingImpl: sendRealtimeMessage failed: ${e.message}")
@@ -223,22 +227,22 @@ internal object chimeMeeting : NSObject(),
     fun subscribeTopic(topic: String) {
         val session = meetingSession ?: return
         subscribedTopics.add(topic)
-        session.audioVideo.addRealtimeDataMessageObserver(topic = topic, observer = this)
+        session.audioVideo().addRealtimeDataMessageObserverWithTopic(topic = topic, observer = this)
     }
 
     fun unsubscribeTopic(topic: String) {
         val session = meetingSession ?: return
         subscribedTopics.remove(topic)
-        session.audioVideo.removeRealtimeDataMessageObserverFromTopic(topic = topic)
+        session.audioVideo().removeRealtimeDataMessageObserverFromTopicWithTopic(topic = topic)
     }
 
-    override fun audioSessionDidStartConnecting(reconnecting: Boolean) {
+    override fun audioSessionDidStartConnectingWithReconnecting(reconnecting: Boolean) {
         onConnectionStatusChanged?.invoke(
             if (reconnecting) ConnectionStatus.RECONNECTING else ConnectionStatus.CONNECTING
         )
     }
 
-    override fun audioSessionDidStart(reconnecting: Boolean) {
+    override fun audioSessionDidStartWithReconnecting(reconnecting: Boolean) {
         onConnectionStatusChanged?.invoke(ConnectionStatus.CONNECTED)
     }
 
@@ -247,15 +251,9 @@ internal object chimeMeeting : NSObject(),
         onSessionError?.invoke("Audio dropped, reconnecting...", true)
     }
 
-    override fun audioSessionDidStopWithStatus(sessionStatus: MeetingSessionStatus) {
+    override fun audioSessionDidStopWithStatusWithSessionStatus(sessionStatus: MeetingSessionStatus) {
         onConnectionStatusChanged?.invoke(ConnectionStatus.DISCONNECTED)
-        val message = when (sessionStatus.statusCode) {
-            MeetingSessionStatusCode.ok -> "Meeting ended"
-            MeetingSessionStatusCode.audioServerHungup -> "Server disconnected"
-            MeetingSessionStatusCode.audioJoinedFromAnotherDevice -> "Joined from another device"
-            else -> "Session ended: ${sessionStatus.statusCode}"
-        }
-        onSessionError?.invoke(message, false)
+        onSessionError?.invoke("Session ended: ${sessionStatus.statusCode()}", false)
     }
 
     override fun audioSessionDidCancelReconnect() {
@@ -273,147 +271,147 @@ internal object chimeMeeting : NSObject(),
 
     override fun videoSessionDidStartConnecting() {}
 
-    override fun videoSessionDidStartWithStatus(sessionStatus: MeetingSessionStatus) {
-        if (sessionStatus.statusCode == MeetingSessionStatusCode.videoAtCapacityViewOnly) {
+    override fun videoSessionDidStartWithStatusWithSessionStatus(sessionStatus: MeetingSessionStatus) {
+        if (sessionStatus.statusCode() == MeetingSessionStatusCodeVideoAtCapacityViewOnly) {
             onSessionError?.invoke("Video at capacity. View only.", false)
         }
     }
 
-    override fun videoSessionDidStopWithStatus(sessionStatus: MeetingSessionStatus) {}
+    override fun videoSessionDidStopWithStatusWithSessionStatus(sessionStatus: MeetingSessionStatus) {}
 
-    override fun remoteVideoSourcesDidBecomeAvailable(sources: List<*>) {
+    override fun remoteVideoSourcesDidBecomeAvailableWithSources(sources: List<*>) {
         onRemoteVideoAvailable?.invoke(true, sources.size)
     }
 
-    override fun remoteVideoSourcesDidBecomeUnavailable(sources: List<*>) {
+    override fun remoteVideoSourcesDidBecomeUnavailableWithSources(sources: List<*>) {
         onRemoteVideoAvailable?.invoke(false, sources.size)
     }
 
-    override fun cameraSendAvailabilityDidChange(available: Boolean) {
+    override fun cameraSendAvailabilityDidChangeWithAvailable(available: Boolean) {
         onCameraSendAvailable?.invoke(available)
     }
 
-    override fun attendeesDidJoin(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesJoined(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId })
+    override fun attendeesDidJoinWithAttendeeInfo(attendeeInfo: List<*>) {
+        realTimeListener?.onAttendeesJoined(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
     }
 
-    override fun attendeesDidLeave(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesLeft(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId })
+    override fun attendeesDidLeaveWithAttendeeInfo(attendeeInfo: List<*>) {
+        realTimeListener?.onAttendeesLeft(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
     }
 
-    override fun attendeesDidDrop(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesDropped(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId })
+    override fun attendeesDidDropWithAttendeeInfo(attendeeInfo: List<*>) {
+        realTimeListener?.onAttendeesDropped(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
     }
 
-    override fun attendeesDidMute(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesMuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId })
+    override fun attendeesDidMuteWithAttendeeInfo(attendeeInfo: List<*>) {
+        realTimeListener?.onAttendeesMuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
     }
 
-    override fun attendeesDidUnmute(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesUnmuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId })
+    override fun attendeesDidUnmuteWithAttendeeInfo(attendeeInfo: List<*>) {
+        realTimeListener?.onAttendeesUnmuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
     }
 
-    override fun signalStrengthDidChange(signalUpdates: List<*>) {
+    override fun signalStrengthDidChangeWithSignalUpdates(signalUpdates: List<*>) {
         signalUpdates.filterIsInstance<SignalUpdate>().forEach { update ->
             realTimeListener?.onSignalStrengthChanged(
-                update.attendeeInfo.attendeeId,
-                update.attendeeInfo.externalUserId,
-                update.signalStrength.rawValue.toInt()
+                update.attendeeInfo().attendeeId(),
+                update.attendeeInfo().externalUserId(),
+                update.signalStrength().toInt()
             )
         }
     }
 
-    override fun volumeDidChange(volumeUpdates: List<*>) {
+    override fun volumeDidChangeWithVolumeUpdates(volumeUpdates: List<*>) {
         volumeUpdates.filterIsInstance<VolumeUpdate>().forEach { update ->
             realTimeListener?.onVolumeChanged(
-                update.attendeeInfo.attendeeId,
-                update.attendeeInfo.externalUserId,
-                update.volumeLevel.rawValue.toInt()
+                update.attendeeInfo().attendeeId(),
+                update.attendeeInfo().externalUserId(),
+                update.volumeLevel().toInt()
             )
         }
     }
 
-    override fun videoTileDidAdd(tileState: VideoTileState) {
+    override fun videoTileDidAddWithTileState(tileState: VideoTileState) {
         NSOperationQueue.mainQueue.addOperationWithBlock {
-            val tileId = tileState.tileId
-            if (tileState.isLocalTile) {
+            val tileId = tileState.tileId()
+            if (tileState.isLocalTile()) {
                 localTileId = tileId
-                meetingSession?.audioVideo?.bindVideoView(videoView = localRenderView, tileId = tileId)
+                meetingSession?.audioVideo()?.bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
                 onLocalVideoTileAdded?.invoke(tileId.toInt())
             } else {
-                val attendeeId = tileState.attendeeId
+                val attendeeId = tileState.attendeeId()
                 val oldTileId = attendeeTileMap[attendeeId]
                 if (oldTileId != null && oldTileId != tileId) {
-                    meetingSession?.audioVideo?.unbindVideoView(tileId = oldTileId)
+                    meetingSession?.audioVideo()?.unbindVideoViewWithTileId(tileId = oldTileId)
                     remoteTiles.remove(oldTileId)
                     attendeeTileMap.remove(attendeeId)
                     onRemoteTileRemoved?.invoke(oldTileId.toInt())
                 }
                 val renderView = remoteTiles.getOrPut(tileId) {
-                    DefaultVideoRenderView().also { it.mirror = false }
+                    DefaultVideoRenderView().also { it.setMirror(false) }
                 }
                 attendeeTileMap[attendeeId] = tileId
-                meetingSession?.audioVideo?.bindVideoView(videoView = renderView, tileId = tileId)
+                meetingSession?.audioVideo()?.bindVideoViewWithVideoView(videoView = renderView, tileId = tileId)
                 onRemoteTileAdded?.invoke(tileId.toInt())
             }
         }
     }
 
-    override fun videoTileDidRemove(tileState: VideoTileState) {
+    override fun videoTileDidRemoveWithTileState(tileState: VideoTileState) {
         NSOperationQueue.mainQueue.addOperationWithBlock {
-            val tileId = tileState.tileId
-            meetingSession?.audioVideo?.unbindVideoView(tileId = tileId)
+            val tileId = tileState.tileId()
+            meetingSession?.audioVideo()?.unbindVideoViewWithTileId(tileId = tileId)
             if (tileId == localTileId) {
                 localTileId = null
                 onLocalVideoTileRemoved?.invoke()
             } else if (remoteTiles.containsKey(tileId)) {
                 remoteTiles.remove(tileId)
-                if (attendeeTileMap[tileState.attendeeId] == tileId) {
-                    attendeeTileMap.remove(tileState.attendeeId)
+                if (attendeeTileMap[tileState.attendeeId()] == tileId) {
+                    attendeeTileMap.remove(tileState.attendeeId())
                 }
                 onRemoteTileRemoved?.invoke(tileId.toInt())
             }
         }
     }
 
-    override fun videoTileDidPause(tileState: VideoTileState) {}
+    override fun videoTileDidPauseWithTileState(tileState: VideoTileState) {}
 
-    override fun videoTileDidResume(tileState: VideoTileState) {
+    override fun videoTileDidResumeWithTileState(tileState: VideoTileState) {
         NSOperationQueue.mainQueue.addOperationWithBlock {
-            val tileId = tileState.tileId
-            if (tileState.isLocalTile) {
+            val tileId = tileState.tileId()
+            if (tileState.isLocalTile()) {
                 localTileId = tileId
-                meetingSession?.audioVideo?.bindVideoView(videoView = localRenderView, tileId = tileId)
+                meetingSession?.audioVideo()?.bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
                 onLocalVideoTileAdded?.invoke(tileId.toInt())
             } else {
                 val renderView = remoteTiles.getOrPut(tileId) {
-                    DefaultVideoRenderView().also { it.mirror = false }
+                    DefaultVideoRenderView().also { it.setMirror(false) }
                 }
-                attendeeTileMap[tileState.attendeeId] = tileId
-                meetingSession?.audioVideo?.bindVideoView(videoView = renderView, tileId = tileId)
+                attendeeTileMap[tileState.attendeeId()] = tileId
+                meetingSession?.audioVideo()?.bindVideoViewWithVideoView(videoView = renderView, tileId = tileId)
                 onRemoteTileAdded?.invoke(tileId.toInt())
             }
         }
     }
 
-    override fun videoTileSizeDidChange(tileState: VideoTileState) {}
+    override fun videoTileSizeDidChangeWithTileState(tileState: VideoTileState) {}
 
-    override fun audioDeviceDidChange(freshAudioDeviceList: List<*>) {}
+    override fun audioDeviceDidChangeWithFreshAudioDeviceList(freshAudioDeviceList: List<*>) {}
 
-    override fun activeSpeakerDidDetect(attendeeInfo: List<*>) {
-        val ids = attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.externalUserId }.toSet()
+    override fun activeSpeakerDidDetectWithAttendeeInfo(attendeeInfo: List<*>) {
+        val ids = attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.externalUserId() }.toSet()
         onActiveSpeakersChanged?.invoke(ids)
     }
 
-    override fun activeSpeakerScoreDidChange(scores: Map<*, *>) {}
+    override fun activeSpeakerScoreDidChangeWithScores(scores: Map<Any?, *>) {}
 
-    override fun dataMessageDidReceived(dataMessage: DataMessage) {
-        topicListeners[dataMessage.topic]?.invoke(
+    override fun dataMessageDidReceivedWithDataMessage(dataMessage: DataMessage) {
+        topicListeners[dataMessage.topic()]?.invoke(
             TextMessage(
-                topic = dataMessage.topic,
-                senderId = dataMessage.senderAttendeeId,
+                topic = dataMessage.topic(),
+                senderId = dataMessage.senderAttendeeId(),
                 content = dataMessage.text() ?: "",
-                timestamp = dataMessage.timestampMs
+                timestamp = dataMessage.timestampMs()
             )
         )
     }
