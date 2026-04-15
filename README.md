@@ -2,10 +2,6 @@
 
 A Kotlin Multiplatform library for [Amazon Chime SDK](https://aws.amazon.com/chime/chime-sdk/) meetings on Android and iOS. Exposes a single shared API via Compose Multiplatform: join meetings, send and receive audio/video, and exchange real-time data messages without writing platform-specific code.
 
-Local: ./gradlew :chime-sdk:publishToMavenLocal -PskipSigning
-
----
-
 ## Installation
 
 ### Gradle dependencies
@@ -20,7 +16,7 @@ kotlin {
             implementation("com.wannaverse:chimesdk:<version>")
         }
 
-        // Android implementation (includes native .so media libraries)
+        // Android implementation
         androidMain.dependencies {
             implementation("com.wannaverse:chimesdk-android:<version>")
         }
@@ -39,9 +35,9 @@ kotlin {
 ```kotlin
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        appContext = applicationContext   // top-level var provided by the library
+        com.wannaverse.chimesdk.appContext = applicationContext
         super.onCreate(savedInstanceState)
-        setContent { /* your UI */ }
+        // ...
     }
 }
 ```
@@ -69,11 +65,9 @@ The iOS implementation is compiled entirely in Kotlin via cinterop. **No Swift f
 #### Option A: Swift Package Manager (recommended)
 
 1. In Xcode: **File → Add Package Dependencies**
-2. Enter `https://github.com/aws/amazon-chime-sdk-ios`
+2. Enter `https://github.com/aws/amazon-chime-sdk-ios-spm`
 3. Select version rule `Up to Next Minor` from `0.25.0`
 4. Add **AmazonChimeSDK** and **AmazonChimeSDKMedia** to your app target
-
-No Podfile, no `pod install`, no workspace switch needed.
 
 #### Option B: CocoaPods
 
@@ -89,7 +83,6 @@ end
 
 ```bash
 cd iosApp && pod install
-# Open iosApp.xcworkspace (not .xcodeproj) going forward
 ```
 
 #### Info.plist usage descriptions
@@ -102,8 +95,6 @@ Both options require these keys in `Info.plist`:
 <key>NSMicrophoneUsageDescription</key>
 <string>Microphone is used for audio calls.</string>
 ```
-
----
 
 ## Usage
 
@@ -213,49 +204,8 @@ sendRealtimeMessage(topic = "chat", data = "Hello!", lifetimeMs = 0)
 unsubscribeFromTopic("chat")
 ```
 
----
-
-## Models
-
-### MeetingInformation
-
-A convenience data class for passing credentials around your app:
-
-```kotlin
-data class MeetingInformation(
-    val externalMeetingId: String,
-    val meetingId: String,
-    val audioHostURL: String,
-    val audioFallbackURL: String,
-    val turnControlURL: String,
-    val signalingURL: String,
-    val ingestionURL: String,
-    val attendeeId: String,
-    val externalUserId: String,
-    val joinToken: String
-)
-```
-
-### ConnectionStatus
-
-```kotlin
-enum class ConnectionStatus {
-    CONNECTING, CONNECTED, RECONNECTING, POOR_CONNECTION, DISCONNECTED, ERROR
-}
-```
-
-### AudioDevice
-
-```kotlin
-data class AudioDevice(
-    val type: Int,
-    val label: String,
-    val id: String?,
-    var isSelected: Boolean
-)
-```
-
----
+## Example Project
+[kmp-chime-demo](https://github.com/surajkumar/kmp-chime-demo)
 
 ## License
 
