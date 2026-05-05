@@ -223,6 +223,44 @@ internal class ChimeMeetingImpl : NSObject(),
         }
     }
 
+    fun getAvailableInputDevices(): List<AudioDevice> =
+        meetingSession?.audioVideo()
+            ?.listAudioDevices()
+            ?.mapNotNull { device ->
+                if (device !is MediaDevice) return@mapNotNull null
+                val type = when (device.type()) {
+                    MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
+                    MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
+                    MediaDeviceTypeAudioHandset -> AudioDeviceType.BUILT_IN_MIC
+                    else -> return@mapNotNull null
+                }
+
+                AudioDevice(
+                    type = type,
+                    label = device.label()
+                )
+            }
+            .orEmpty()
+
+    fun getAvailableOutputDevices(): List<AudioDevice> =
+        meetingSession?.audioVideo()
+            ?.listAudioDevices()
+            ?.mapNotNull { device ->
+                if (device !is MediaDevice) return@mapNotNull null
+                val type = when (device.type()) {
+                    MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
+                    MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
+                    MediaDeviceTypeAudioBuiltInSpeaker -> AudioDeviceType.SPEAKER
+                    else -> return@mapNotNull null
+                }
+
+                AudioDevice(
+                    type = type,
+                    label = device.label()
+                )
+            }
+            .orEmpty()
+
     private fun configureAudioSession() {
         val s = AVAudioSession.sharedInstance()
         s.setCategory(

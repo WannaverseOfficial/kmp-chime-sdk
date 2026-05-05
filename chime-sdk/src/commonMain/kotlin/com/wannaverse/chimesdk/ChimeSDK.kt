@@ -60,6 +60,10 @@ expect fun joinMeeting(
     onLocalAttendeeIdAvailable: (String) -> Unit = {}
 )
 
+expect fun getAvailableInputDevices(): List<AudioDevice>
+
+expect fun getAvailableOutputDevices(): List<AudioDevice>
+
 /** Ends the active meeting session and releases all resources. */
 expect fun leaveMeeting()
 

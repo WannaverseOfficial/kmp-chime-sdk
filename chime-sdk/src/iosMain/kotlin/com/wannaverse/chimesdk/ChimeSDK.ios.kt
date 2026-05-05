@@ -9,6 +9,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
 import platform.CoreGraphics.CGRect
 import platform.UIKit.UIView
+import kotlin.collections.orEmpty
 
 private class RemoteVideoContainerView(
     private val tileId: Int
@@ -82,6 +83,10 @@ actual fun joinMeeting(
         startMuted = isJoiningOnMute
     )
 }
+
+actual fun getAvailableInputDevices(): List<AudioDevice> = chimeMeeting.getAvailableInputDevices()
+
+actual fun getAvailableOutputDevices(): List<AudioDevice> = chimeMeeting.getAvailableOutputDevices()
 
 actual fun leaveMeeting() {
     chimeMeeting.leave()

@@ -152,6 +152,44 @@ actual fun joinMeeting(
     meetingSession!!.audioVideo.startRemoteVideo()
 }
 
+actual fun getAvailableInputDevices(): List<AudioDevice> =
+    meetingSession?.audioVideo
+        ?.listAudioDevices()
+        ?.mapNotNull { device ->
+            val type = when (device.type) {
+                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.BUILT_IN_MIC
+                else -> return@mapNotNull null
+            }
+
+            AudioDevice(
+                type = type,
+                label = device.label
+            )
+        }
+        .orEmpty()
+
+actual fun getAvailableOutputDevices(): List<AudioDevice> =
+    meetingSession?.audioVideo
+        ?.listAudioDevices()
+        ?.mapNotNull { device ->
+            val type = when (device.type) {
+                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
+                else -> return@mapNotNull null
+            }
+
+            AudioDevice(
+                type = type,
+                label = device.label
+            )
+        }
+        .orEmpty()
+
 actual fun leaveMeeting() {
     try {
         if (cameraOn || cameraCaptureSource != null) {
