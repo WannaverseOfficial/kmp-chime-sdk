@@ -327,35 +327,12 @@ actual fun switchCamera() {
     source.device = newDevice
 }
 
-actual fun switchAudioDevice(deviceId: String?) {
-    if (deviceId.isNullOrBlank()) return
-    val devices = meetingSession?.audioVideo?.listAudioDevices() ?: return
-
-    val target = devices.firstOrNull { device ->
-        if (device.id == deviceId) {
-            true
-        } else if (device.id.isNullOrBlank()) {
-            val typeConst = when (device.type) {
-                MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
-                MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.EARPIECE
-                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
-                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
-                else -> AudioDeviceType.UNKNOWN
-            }
-            val typeName = typeConst.name
-            val suffix = when (typeConst) {
-                AudioDeviceType.SPEAKER -> "PHONE_SPEAKER"
-                AudioDeviceType.EARPIECE -> "HANDSET_EARPIECE"
-                AudioDeviceType.BLUETOOTH -> deviceId.substringAfter("${typeName}_", "")
-                else -> device.label.replace("[^A-Za-z0-9]".toRegex(), "_").uppercase()
-            }
-            "${typeName}_$suffix" == deviceId
-        } else {
-            false
-        }
-    }
-
-    target?.let { meetingSession?.audioVideo?.chooseAudioDevice(it) }
+actual fun switchAudioDevice(device: String?) {
+    val targetChimeDevice = meetingSession
+        ?.audioVideo
+        ?.listAudioDevices()
+        ?.firstOrNull { it.label == device } ?: return
+    meetingSession?.audioVideo?.chooseAudioDevice(targetChimeDevice)
 }
 
 actual fun subscribeToTopic(topic: String, listener: (TextMessage) -> Unit) {

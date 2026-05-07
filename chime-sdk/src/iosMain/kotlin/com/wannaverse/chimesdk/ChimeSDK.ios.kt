@@ -9,7 +9,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
 import platform.CoreGraphics.CGRect
 import platform.UIKit.UIView
-import kotlin.collections.orEmpty
 
 private class RemoteVideoContainerView(
     private val tileId: Int
@@ -138,8 +137,8 @@ actual fun switchCamera() {
     chimeMeeting.switchCamera()
 }
 
-actual fun switchAudioDevice(deviceId: String?) {
-    chimeMeeting.switchAudioDevice(deviceId)
+actual fun switchAudioDevice(device: String?) {
+    chimeMeeting.switchAudioDevice(device)
 }
 
 actual fun subscribeToTopic(topic: String, listener: (TextMessage) -> Unit) {
