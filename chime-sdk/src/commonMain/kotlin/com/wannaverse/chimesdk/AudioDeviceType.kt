@@ -5,5 +5,6 @@ enum class AudioDeviceType {
     EARPIECE,
     BLUETOOTH,
     WIRED_HEADSET,
+    BUILT_IN_MIC,
     UNKNOWN
 }

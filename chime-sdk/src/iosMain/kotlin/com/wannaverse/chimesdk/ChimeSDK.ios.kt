@@ -83,6 +83,10 @@ actual fun joinMeeting(
     )
 }
 
+actual fun getAvailableInputDevices(): List<AudioDevice> = chimeMeeting.getAvailableInputDevices()
+
+actual fun getAvailableOutputDevices(): List<AudioDevice> = chimeMeeting.getAvailableOutputDevices()
+
 actual fun leaveMeeting() {
     chimeMeeting.leave()
 }
@@ -133,8 +137,8 @@ actual fun switchCamera() {
     chimeMeeting.switchCamera()
 }
 
-actual fun switchAudioDevice(deviceId: String?) {
-    chimeMeeting.switchAudioDevice(deviceId)
+actual fun switchAudioDevice(device: String?) {
+    chimeMeeting.switchAudioDevice(device)
 }
 
 actual fun subscribeToTopic(topic: String, listener: (TextMessage) -> Unit) {

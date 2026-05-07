@@ -2,6 +2,7 @@ package com.wannaverse.chimesdk
 
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
+import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.session.DefaultMeetingSession
 
 class DeviceObserver(
@@ -13,27 +14,27 @@ class DeviceObserver(
 
     override fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>) {
         val devices = freshAudioDeviceList.map { device ->
+            val type = when (device.type) {
+                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
+                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.BUILT_IN_MIC
+                else -> AudioDeviceType.UNKNOWN
+            }
+
             AudioDevice(
                 label = device.label,
-                type = device.type.ordinal,
-                id = device.id
+                type = type,
             )
         }
 
-        if (currentSelectedDevice == null && freshAudioDeviceList.isNotEmpty()) {
-            selectAudioDevice(freshAudioDeviceList[0])
-        } else if (currentSelectedDevice != null) {
-            val stillAvailable = freshAudioDeviceList.any { it.id == currentSelectedDevice?.id }
-            if (!stillAvailable && freshAudioDeviceList.isNotEmpty()) {
-                selectAudioDevice(freshAudioDeviceList[0])
-            }
-        }
+        if (!freshAudioDeviceList.contains(currentSelectedDevice)) selectAudioDevice(
+            freshAudioDeviceList.first()
+        )
 
-        val selected = currentSelectedDevice?.let { sel ->
-            devices.firstOrNull { it.id == sel.id }
-        }
-
-        realTimeEventListener.onAudioDevicesUpdated(devices, selected)
+        val selected = devices.firstOrNull { it.label == currentSelectedDevice?.label }
+        realTimeEventListener.onAudioDevicesUpdated(devices, selectedDevice = selected)
     }
 
     fun selectAudioDevice(device: MediaDevice) {

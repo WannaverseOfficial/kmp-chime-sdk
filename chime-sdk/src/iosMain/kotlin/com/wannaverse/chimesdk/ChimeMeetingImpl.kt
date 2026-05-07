@@ -10,8 +10,6 @@ import platform.CoreGraphics.CGRect
 import platform.Foundation.*
 import platform.UIKit.UIView
 import platform.darwin.NSObject
-import platform.darwin.dispatch_async
-import platform.darwin.dispatch_get_main_queue
 import platform.objc.class_addProtocol
 import platform.objc.object_getClass
 import platform.objc.objc_getProtocol
@@ -223,6 +221,44 @@ internal class ChimeMeetingImpl : NSObject(),
         }
     }
 
+    fun getAvailableInputDevices(): List<AudioDevice> =
+        meetingSession?.audioVideo()
+            ?.listAudioDevices()
+            ?.mapNotNull { device ->
+                if (device !is MediaDevice) return@mapNotNull null
+                val type = when (device.type()) {
+                    MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
+                    MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
+                    MediaDeviceTypeAudioHandset -> AudioDeviceType.BUILT_IN_MIC
+                    else -> return@mapNotNull null
+                }
+
+                AudioDevice(
+                    type = type,
+                    label = device.label()
+                )
+            }
+            .orEmpty()
+
+    fun getAvailableOutputDevices(): List<AudioDevice> =
+        meetingSession?.audioVideo()
+            ?.listAudioDevices()
+            ?.mapNotNull { device ->
+                if (device !is MediaDevice) return@mapNotNull null
+                val type = when (device.type()) {
+                    MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
+                    MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
+                    MediaDeviceTypeAudioBuiltInSpeaker -> AudioDeviceType.SPEAKER
+                    else -> return@mapNotNull null
+                }
+
+                AudioDevice(
+                    type = type,
+                    label = device.label()
+                )
+            }
+            .orEmpty()
+
     private fun configureAudioSession() {
         val s = AVAudioSession.sharedInstance()
         s.setCategory(
@@ -319,13 +355,13 @@ internal class ChimeMeetingImpl : NSObject(),
         return if (shouldMute) av.realtimeLocalMute() else av.realtimeLocalUnmute()
     }
 
-    fun switchAudioDevice(deviceId: String?) {
-        val id = deviceId ?: return
-        meetingSession?.audioVideo()
+    fun switchAudioDevice(device: String?) {
+        val targetChimeDevice = meetingSession
+            ?.audioVideo()
             ?.listAudioDevices()
             ?.filterIsInstance<MediaDevice>()
-            ?.firstOrNull { it.label() == id }
-            ?.let { meetingSession?.audioVideo()?.chooseAudioDeviceWithMediaDevice(mediaDevice = it) }
+            ?.firstOrNull { it.label() == device } ?: return
+        meetingSession?.audioVideo()?.chooseAudioDeviceWithMediaDevice(targetChimeDevice)
     }
 
     fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) {

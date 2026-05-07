@@ -60,6 +60,10 @@ expect fun joinMeeting(
     onLocalAttendeeIdAvailable: (String) -> Unit = {}
 )
 
+expect fun getAvailableInputDevices(): List<AudioDevice>
+
+expect fun getAvailableOutputDevices(): List<AudioDevice>
+
 /** Ends the active meeting session and releases all resources. */
 expect fun leaveMeeting()
 
@@ -99,9 +103,9 @@ expect fun switchCamera()
 /**
  * Routes audio output to the given device.
  *
- * @param deviceId [AudioDevice.id] of the target device, or null to use the platform default.
+ * @param device [AudioDevice.label] of the target device, or null to use the platform default.
  */
-expect fun switchAudioDevice(deviceId: String?)
+expect fun switchAudioDevice(device: String?)
 
 /**
  * Subscribes to incoming data messages on [topic]. Call after [joinMeeting].
