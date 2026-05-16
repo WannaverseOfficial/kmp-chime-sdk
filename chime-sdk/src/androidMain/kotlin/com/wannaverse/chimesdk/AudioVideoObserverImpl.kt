@@ -10,8 +10,7 @@ class AudioVideoObserverImpl(
     private val onRemoteVideoAvailable: (isAvailable: Boolean, sourceCount: Int) -> Unit,
     private val onCameraSendAvailable: (available: Boolean) -> Unit,
     private val onSessionError: (message: String, isRecoverable: Boolean) -> Unit,
-    private val onVideoNeedsRestart: () -> Unit,
-    private val isJoiningOnMute: Boolean
+    private val onVideoNeedsRestart: () -> Unit
 ) : AudioVideoObserver {
 
     private var isVideoSessionActive = false
@@ -29,10 +28,6 @@ class AudioVideoObserverImpl(
 
     override fun onAudioSessionStarted(reconnecting: Boolean) {
         onConnectionStatusChanged(ConnectionStatus.CONNECTED)
-
-        if (!reconnecting && isJoiningOnMute) {
-            meetingSession?.audioVideo?.realtimeLocalMute()
-        }
 
         if (reconnecting && shouldRestartVideoAfterReconnect && !isVideoSessionActive) {
             onVideoNeedsRestart()
