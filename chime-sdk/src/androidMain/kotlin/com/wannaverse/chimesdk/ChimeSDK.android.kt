@@ -1,13 +1,11 @@
 package com.wannaverse.chimesdk
 
-import android.app.Application
 import android.content.Context
 import android.hardware.camera2.CameraManager
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultEventAnalyticsController
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultMeetingStatsCollector
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerpolicy.DefaultActiveSpeakerPolicy
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultCameraCaptureSource
@@ -16,342 +14,389 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglC
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.ingestion.DefaultAppStateMonitor
-import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessage
-import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessageObserver
 import com.amazonaws.services.chime.sdk.meetings.session.DefaultMeetingSession
-import com.amazonaws.services.chime.sdk.meetings.session.MeetingFeatures
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionCredentials
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionURLs
+import com.amazonaws.services.chime.sdk.meetings.utils.logger.ConsoleLogger
+import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
 import com.wannaverse.chimesdk.composables.VideoTileView
 
-private val chimeLogger = ChimeLogger()
-var meetingSession: DefaultMeetingSession? = null
-
-private var deviceObserver: DeviceObserver? = null
-private var realTimeObserver: RealTimeObserver? = null
-private var audioVideoObserver: AudioVideoObserver? = null
-private var eventAnalyticsController: DefaultEventAnalyticsController? = null
-private var eglCoreFactory: DefaultEglCoreFactory? = null
-private var cameraCaptureSource: CameraCaptureSource? = null
-private var cachedVideoDevices: List<MediaDevice>? = null
-private var currentCameraFacing = CameraFacing.FRONT
-private var cameraOn = false
-private val topicObservers = mutableMapOf<String, DataMessageObserver>()
-
-actual fun joinMeeting(
-    externalMeetingId: String,
-    meetingId: String,
-    audioHostURL: String,
-    audioFallbackURL: String,
-    turnControlURL: String,
-    signalingURL: String,
-    ingestionURL: String,
-    attendeeId: String,
-    externalUserId: String,
-    joinToken: String,
-    realTimeListener: RealTimeEventListener,
-    onActiveSpeakersChanged: (Set<String>) -> Unit,
-    cameraFacing: CameraFacing,
-    onLocalVideoTileAdded: ((Int?) -> Unit)?,
-    onConnectionStatusChanged: (ConnectionStatus) -> Unit,
-    onRemoteVideoAvailable: (isAvailable: Boolean, sourceCount: Int) -> Unit,
-    onCameraSendAvailable: (available: Boolean) -> Unit,
-    onSessionError: (message: String, isRecoverable: Boolean) -> Unit,
-    onVideoNeedsRestart: () -> Unit,
-    onLocalVideoTileRemoved: (() -> Unit)?,
-    preferredAudioInputDeviceType: String?,
-    onRemoteTileAdded: ((Int) -> Unit)?,
-    onRemoteTileRemoved: ((Int) -> Unit)?,
-    isJoiningOnMute: Boolean,
-    onLocalAttendeeIdAvailable: (String) -> Unit
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+actual class ChimeSDK(
+    private val meetingSession: DefaultMeetingSession,
+    private val eventAnalyticsController: DefaultEventAnalyticsController,
+    private val eglCoreFactory: DefaultEglCoreFactory
 ) {
-    currentCameraFacing = cameraFacing
+    actual companion object {
+        private val logger = ConsoleLogger(LogLevel.INFO)
 
-    val configuration = MeetingSessionConfiguration(
-        credentials = MeetingSessionCredentials(
-            attendeeId = attendeeId,
-            externalUserId = externalUserId,
-            joinToken = joinToken
-        ),
-        externalMeetingId = externalMeetingId,
-        features = MeetingFeatures(),
-        meetingId = meetingId,
-        urls = MeetingSessionURLs(
-            _audioFallbackURL = audioFallbackURL,
-            _audioHostURL = audioHostURL,
-            _ingestionURL = ingestionURL,
-            _signalingURL = signalingURL,
-            _turnControlURL = turnControlURL,
-            urlRewriter = { url -> url }
-        )
-    )
+        actual fun createSession(
+            externalMeetingId: String,
+            meetingId: String,
+            audioHostURL: String,
+            audioFallbackURL: String,
+            turnControlURL: String,
+            signalingURL: String,
+            ingestionURL: String,
+            attendeeId: String,
+            externalUserId: String,
+            joinToken: String
+        ): ChimeSDK {
+            val meetingSessionConfiguration = MeetingSessionConfiguration(
+                meetingId = meetingId,
+                externalMeetingId = externalMeetingId,
+                credentials = MeetingSessionCredentials(
+                    attendeeId = attendeeId,
+                    externalUserId = externalUserId,
+                    joinToken = joinToken
+                ),
+                urls = MeetingSessionURLs(
+                    _audioFallbackURL = audioFallbackURL,
+                    _audioHostURL = audioHostURL,
+                    _ingestionURL = ingestionURL,
+                    _signalingURL = signalingURL,
+                    _turnControlURL = turnControlURL,
+                    urlRewriter = { it }
+                )
+            )
 
-    eventAnalyticsController = DefaultEventAnalyticsController(
-        logger = chimeLogger,
-        meetingSessionConfiguration = configuration,
-        meetingStatsCollector = DefaultMeetingStatsCollector(chimeLogger),
-        appStateMonitor = DefaultAppStateMonitor(chimeLogger, appContext.applicationContext as? Application)
-    )
+            val eventAnalyticsController = DefaultEventAnalyticsController(
+                logger = logger,
+                meetingSessionConfiguration = meetingSessionConfiguration,
+                meetingStatsCollector = DefaultMeetingStatsCollector(logger),
+                appStateMonitor = DefaultAppStateMonitor(logger)
+            )
 
-    eglCoreFactory = DefaultEglCoreFactory()
-    meetingSession = DefaultMeetingSession(configuration, chimeLogger, appContext, eglCoreFactory!!)
+            val eglCoreFactory = DefaultEglCoreFactory()
 
-    realTimeObserver = RealTimeObserver().also { it.setListener(realTimeListener) }
-    deviceObserver = DeviceObserver(meetingSession!!, realTimeListener)
+            val meetingSession =
+                DefaultMeetingSession(meetingSessionConfiguration, logger, appContext, eglCoreFactory)
 
-    onLocalAttendeeIdAvailable(meetingSession!!.configuration.credentials.attendeeId)
+            return ChimeSDK(meetingSession, eventAnalyticsController, eglCoreFactory)
+        }
+    }
 
-    val audioDevices = meetingSession!!.audioVideo.listAudioDevices()
-    if (audioDevices.isNotEmpty()) {
-        val preferred = if (preferredAudioInputDeviceType != null) {
-            audioDevices.firstOrNull { device ->
-                when {
-                    preferredAudioInputDeviceType.contains("Bluetooth", ignoreCase = true) ->
-                        device.type == MediaDeviceType.AUDIO_BLUETOOTH
-                    preferredAudioInputDeviceType.contains("Speaker", ignoreCase = true) ->
-                        device.type == MediaDeviceType.AUDIO_BUILTIN_SPEAKER
-                    preferredAudioInputDeviceType.contains("Microphone", ignoreCase = true) ||
-                        preferredAudioInputDeviceType.contains("Earpiece", ignoreCase = true) ->
-                        device.type == MediaDeviceType.AUDIO_HANDSET
-                    else -> false
+    private var videoTileObserver: VideoTileManager? = null
+    private var cameraCaptureSource: CameraCaptureSource? = null
+    private var cachedVideoDevices: List<MediaDevice>? = null
+    private var currentCameraFacing = CameraFacing.FRONT
+    private var cameraOn = false
+
+    actual fun getAvailableInputDevices(): List<AudioDevice> =
+        meetingSession.audioVideo
+            .listAudioDevices()
+            .mapNotNull { device ->
+                val type = when (device.type) {
+                    MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                    MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                    MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                    MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.BUILT_IN_MIC
+                    else -> return@mapNotNull null
                 }
-            } ?: audioDevices[0]
-        } else {
-            audioDevices[0]
+
+                AudioDevice(
+                    type = type,
+                    label = device.label
+                )
+            }
+
+    actual fun getAvailableOutputDevices(): List<AudioDevice> =
+        meetingSession.audioVideo
+            .listAudioDevices()
+            .mapNotNull { device ->
+                val type = when (device.type) {
+                    MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                    MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                    MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                    MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
+                    else -> return@mapNotNull null
+                }
+
+                AudioDevice(
+                    type = type,
+                    label = device.label
+                )
+            }
+
+    actual fun joinMeeting(
+        realTimeListener: RealTimeEventListener,
+        onActiveSpeakersChanged: (Set<String>) -> Unit,
+        onConnectionStatusChanged: (ConnectionStatus) -> Unit,
+        onRemoteVideoAvailable: (Boolean, Int) -> Unit,
+        onCameraSendAvailable: (Boolean) -> Unit,
+        onSessionError: (String, Boolean) -> Unit,
+        onVideoNeedsRestart: () -> Unit,
+        selectedAudioInputDevice: String?,
+        isJoiningOnMute: Boolean,
+        onLocalTileAdded: (Int) -> Unit,
+        onLocalTileRemoved: () -> Unit,
+        onRemoteTileAdded: (Int) -> Unit,
+        onRemoteTileRemoved: () -> Unit,
+        onChatMessageReceived: (ChimeMessage) -> Unit,
+        onEmojiReceived: (ChimeMessage) -> Unit,
+        onSystemMessage: (ChimeMessage) -> Unit,
+    ) {
+        val realTimeObserver = RealTimeObserverImpl(realTimeListener)
+        meetingSession.audioVideo.addRealtimeObserver(realTimeObserver)
+
+        val deviceObserver = DeviceObserver(
+            meetingSession = meetingSession,
+            realTimeEventListener = realTimeListener
+        )
+        meetingSession.audioVideo.addDeviceChangeObserver(deviceObserver)
+
+        meetingSession.audioVideo.listAudioDevices()
+            .firstOrNull { it.label == selectedAudioInputDevice }
+            ?.let(deviceObserver::selectAudioDevice)
+
+        videoTileObserver = VideoTileManager(
+            onLocalTileAdded = onLocalTileAdded,
+            onLocalTileRemoved = onLocalTileRemoved,
+            onRemoteTileAdded = onRemoteTileAdded,
+            onRemoteTileRemoved = onRemoteTileRemoved
+        )
+        meetingSession.audioVideo.addVideoTileObserver(videoTileObserver!!)
+
+        val audioVideoObserver = AudioVideoObserverImpl(
+            onConnectionStatusChanged = onConnectionStatusChanged,
+            onRemoteVideoAvailable = onRemoteVideoAvailable,
+            onCameraSendAvailable = onCameraSendAvailable,
+            onSessionError = onSessionError,
+            onVideoNeedsRestart = onVideoNeedsRestart
+        )
+        meetingSession.audioVideo.addAudioVideoObserver(audioVideoObserver)
+
+        val activeSpeakerObserver = ActiveSpeakerObserver(onActiveSpeakersChanged)
+        meetingSession.audioVideo.addActiveSpeakerObserver(
+            observer = activeSpeakerObserver,
+            policy = DefaultActiveSpeakerPolicy()
+        )
+
+        meetingSession.audioVideo.addRealtimeDataMessageObserver(
+            topic = "chat",
+            observer = DataMessageObserverImpl(onChatMessageReceived)
+        )
+        meetingSession.audioVideo.addRealtimeDataMessageObserver(
+            topic = "emoji",
+            observer = DataMessageObserverImpl(onEmojiReceived)
+        )
+        meetingSession.audioVideo.addRealtimeDataMessageObserver(
+            topic = "system",
+            observer = DataMessageObserverImpl(onSystemMessage)
+        )
+
+        try {
+            meetingSession.audioVideo.start()
+            meetingSession.audioVideo.startRemoteVideo()
+
+            if (isJoiningOnMute) meetingSession.audioVideo.realtimeLocalMute()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
         }
-        deviceObserver!!.selectAudioDevice(preferred)
+        /*currentCameraFacing = cameraFacing
+
+        val configuration = MeetingSessionConfiguration(
+            credentials = MeetingSessionCredentials(
+                attendeeId = attendeeId,
+                externalUserId = externalUserId,
+                joinToken = joinToken
+            ),
+            externalMeetingId = externalMeetingId,
+            features = MeetingFeatures(),
+            meetingId = meetingId,
+            urls = MeetingSessionURLs(
+                _audioFallbackURL = audioFallbackURL,
+                _audioHostURL = audioHostURL,
+                _ingestionURL = ingestionURL,
+                _signalingURL = signalingURL,
+                _turnControlURL = turnControlURL,
+                urlRewriter = { url -> url }
+            )
+        )
+
+        eventAnalyticsController = DefaultEventAnalyticsController(
+            logger = chimeLogger,
+            meetingSessionConfiguration = configuration,
+            meetingStatsCollector = DefaultMeetingStatsCollector(chimeLogger),
+            appStateMonitor = DefaultAppStateMonitor(chimeLogger, appContext.applicationContext as? Application)
+        )
+
+        eglCoreFactory = DefaultEglCoreFactory()
+        meetingSession = DefaultMeetingSession(configuration, chimeLogger, appContext, eglCoreFactory!!)
+
+        realTimeObserver = RealTimeObserver().also { it.setListener(realTimeListener) }
+        deviceObserver = DeviceObserver(meetingSession!!, realTimeListener)
+
+        onLocalAttendeeIdAvailable(meetingSession!!.configuration.credentials.attendeeId)
+
+        val audioDevices = meetingSession!!.audioVideo.listAudioDevices()
+        if (audioDevices.isNotEmpty()) {
+            val preferred = if (preferredAudioInputDeviceType != null) {
+                audioDevices.firstOrNull { device ->
+                    when {
+                        preferredAudioInputDeviceType.contains("Bluetooth", ignoreCase = true) ->
+                            device.type == MediaDeviceType.AUDIO_BLUETOOTH
+                        preferredAudioInputDeviceType.contains("Speaker", ignoreCase = true) ->
+                            device.type == MediaDeviceType.AUDIO_BUILTIN_SPEAKER
+                        preferredAudioInputDeviceType.contains("Microphone", ignoreCase = true) ||
+                                preferredAudioInputDeviceType.contains("Earpiece", ignoreCase = true) ->
+                            device.type == MediaDeviceType.AUDIO_HANDSET
+                        else -> false
+                    }
+                } ?: audioDevices[0]
+            } else {
+                audioDevices[0]
+            }
+            deviceObserver!!.selectAudioDevice(preferred)
+        }
+
+        VideoTileManager.onLocalTileAdded = { onLocalVideoTileAdded?.invoke(VideoTileManager.localTileId) }
+        VideoTileManager.onLocalTileRemoved = { onLocalVideoTileRemoved?.invoke() }
+        VideoTileManager.onRemoteTileAdded = { tileId -> onRemoteTileAdded?.invoke(tileId) }
+        VideoTileManager.onRemoteTileRemoved = { tileId -> onRemoteTileRemoved?.invoke(tileId) }
+
+        meetingSession!!.audioVideo.addVideoTileObserver(VideoTileManager)
+        meetingSession!!.audioVideo.addDeviceChangeObserver(deviceObserver!!)
+        meetingSession!!.audioVideo.addRealtimeObserver(realTimeObserver!!)
+
+        audioVideoObserver = AudioVideoObserverImpl(
+            onConnectionStatusChanged = onConnectionStatusChanged,
+            onRemoteVideoAvailable = onRemoteVideoAvailable,
+            onCameraSendAvailable = onCameraSendAvailable,
+            onSessionError = onSessionError,
+            onVideoNeedsRestart = onVideoNeedsRestart,
+            isJoiningOnMute = isJoiningOnMute
+        )
+        meetingSession!!.audioVideo.addAudioVideoObserver(audioVideoObserver!!)
+
+        MeetingActiveSpeakerObserver.onActiveSpeakersChanged = onActiveSpeakersChanged
+        meetingSession!!.audioVideo.addActiveSpeakerObserver(
+            observer = MeetingActiveSpeakerObserver,
+            policy = DefaultActiveSpeakerPolicy()
+        )
+
+        meetingSession!!.audioVideo.start()
+        meetingSession!!.audioVideo.startRemoteVideo()*/
     }
 
-    VideoTileManager.onLocalTileAdded = { onLocalVideoTileAdded?.invoke(VideoTileManager.localTileId) }
-    VideoTileManager.onLocalTileRemoved = { onLocalVideoTileRemoved?.invoke() }
-    VideoTileManager.onRemoteTileAdded = { tileId -> onRemoteTileAdded?.invoke(tileId) }
-    VideoTileManager.onRemoteTileRemoved = { tileId -> onRemoteTileRemoved?.invoke(tileId) }
-
-    meetingSession!!.audioVideo.addVideoTileObserver(VideoTileManager)
-    meetingSession!!.audioVideo.addDeviceChangeObserver(deviceObserver!!)
-    meetingSession!!.audioVideo.addRealtimeObserver(realTimeObserver!!)
-
-    audioVideoObserver = AudioVideoObserverImpl(
-        onConnectionStatusChanged = onConnectionStatusChanged,
-        onRemoteVideoAvailable = onRemoteVideoAvailable,
-        onCameraSendAvailable = onCameraSendAvailable,
-        onSessionError = onSessionError,
-        onVideoNeedsRestart = onVideoNeedsRestart,
-        isJoiningOnMute = isJoiningOnMute
-    )
-    meetingSession!!.audioVideo.addAudioVideoObserver(audioVideoObserver!!)
-
-    MeetingActiveSpeakerObserver.onActiveSpeakersChanged = onActiveSpeakersChanged
-    meetingSession!!.audioVideo.addActiveSpeakerObserver(
-        observer = MeetingActiveSpeakerObserver,
-        policy = DefaultActiveSpeakerPolicy()
-    )
-
-    meetingSession!!.audioVideo.start()
-    meetingSession!!.audioVideo.startRemoteVideo()
-}
-
-actual fun getAvailableInputDevices(): List<AudioDevice> =
-    meetingSession?.audioVideo
-        ?.listAudioDevices()
-        ?.mapNotNull { device ->
-            val type = when (device.type) {
-                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
-                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
-                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
-                MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.BUILT_IN_MIC
-                else -> return@mapNotNull null
+    actual fun leaveMeeting() {
+        try {
+            if (cameraOn || cameraCaptureSource != null) {
+                cameraCaptureSource?.stop()
+                meetingSession.audioVideo.stopLocalVideo()
+                cameraOn = false
+                cameraCaptureSource = null
             }
 
-            AudioDevice(
-                type = type,
-                label = device.label
+            meetingSession.audioVideo.stopRemoteVideo()
+            meetingSession.audioVideo.realtimeLocalMute()
+            meetingSession.audioVideo.stop()
+
+//            VideoTileManager.clearAll()
+        } catch (e: Exception) {
+            e.printStackTrace()
+//            VideoTileManager.clearAll()
+        }
+    }
+
+    actual fun startLocalVideo() {
+        val videoDevices = cachedVideoDevices ?: run {
+            val cm = appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            MediaDevice.listVideoDevices(cm).also { cachedVideoDevices = it }
+        }
+
+        val desiredType = if (currentCameraFacing == CameraFacing.FRONT)
+            MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
+
+        val device = videoDevices.firstOrNull { it.type == desiredType }
+            ?: throw IllegalStateException("No camera found for $desiredType")
+
+        if (cameraCaptureSource == null) {
+            val factory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
+            cameraCaptureSource = DefaultCameraCaptureSource(
+                appContext, logger, factory,
+                eventAnalyticsController = eventAnalyticsController
             )
         }
-        .orEmpty()
 
-actual fun getAvailableOutputDevices(): List<AudioDevice> =
-    meetingSession?.audioVideo
-        ?.listAudioDevices()
-        ?.mapNotNull { device ->
-            val type = when (device.type) {
-                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
-                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
-                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
-                MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
-                else -> return@mapNotNull null
-            }
+        cameraCaptureSource!!.device = device
+        cameraCaptureSource!!.start()
+        meetingSession.audioVideo.startLocalVideo(cameraCaptureSource!!)
+        cameraOn = true
+    }
 
-            AudioDevice(
-                type = type,
-                label = device.label
-            )
-        }
-        .orEmpty()
-
-actual fun leaveMeeting() {
-    try {
-        if (cameraOn || cameraCaptureSource != null) {
+    actual fun stopLocalVideo() {
+        try {
+            meetingSession.audioVideo.stopLocalVideo()
             cameraCaptureSource?.stop()
-            meetingSession?.audioVideo?.stopLocalVideo()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
             cameraOn = false
-            cameraCaptureSource = null
         }
-
-        meetingSession?.audioVideo?.stopRemoteVideo()
-        meetingSession?.audioVideo?.realtimeLocalMute()
-
-        deviceObserver?.let { meetingSession?.audioVideo?.removeDeviceChangeObserver(it) }
-        realTimeObserver?.let { meetingSession?.audioVideo?.removeRealtimeObserver(it) }
-        meetingSession?.audioVideo?.removeVideoTileObserver(VideoTileManager)
-        audioVideoObserver?.let { meetingSession?.audioVideo?.removeAudioVideoObserver(it) }
-        meetingSession?.audioVideo?.removeActiveSpeakerObserver(MeetingActiveSpeakerObserver)
-
-        topicObservers.forEach { (topic, _) ->
-            meetingSession?.audioVideo?.removeRealtimeDataMessageObserverFromTopic(topic)
-        }
-        topicObservers.clear()
-
-        meetingSession?.audioVideo?.stop()
-        deviceObserver?.clearCurrentDevice()
-        VideoTileManager.clearAll()
-    } catch (e: Exception) {
-        e.printStackTrace()
-        VideoTileManager.clearAll()
-    } finally {
-        eglCoreFactory = null
-        meetingSession = null
-        deviceObserver = null
-        realTimeObserver = null
-        audioVideoObserver = null
-        eventAnalyticsController = null
-        cameraCaptureSource = null
-        cachedVideoDevices = null
-        cameraOn = false
-    }
-}
-
-actual fun startLocalVideo() {
-    val session = meetingSession ?: throw IllegalStateException("No active meeting session")
-
-    val videoDevices = cachedVideoDevices ?: run {
-        val cm = appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        MediaDevice.listVideoDevices(cm).also { cachedVideoDevices = it }
     }
 
-    val desiredType = if (currentCameraFacing == CameraFacing.FRONT)
-        MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
-
-    val device = videoDevices.firstOrNull { it.type == desiredType }
-        ?: throw IllegalStateException("No camera found for $desiredType")
-
-    if (cameraCaptureSource == null) {
-        val factory = DefaultSurfaceTextureCaptureSourceFactory(
-            chimeLogger,
-            eglCoreFactory ?: throw IllegalStateException("EGL factory not initialized")
+    @Composable
+    actual fun LocalVideoView(modifier: Modifier, cameraFacing: CameraFacing, isOnTop: Boolean) =
+        VideoTileView(
+            tileId = videoTileObserver?.localTileId,
+            modifier = modifier,
+            cameraFacing = cameraFacing,
+            isOnTop = isOnTop,
+            meetingSession = meetingSession,
+            videoTileManager = videoTileObserver!!
         )
-        cameraCaptureSource = DefaultCameraCaptureSource(
-            appContext, chimeLogger, factory,
-            eventAnalyticsController = eventAnalyticsController
-        )
-    }
 
-    cameraCaptureSource!!.device = device
-    cameraCaptureSource!!.start()
-    session.audioVideo.startLocalVideo(cameraCaptureSource!!)
-    cameraOn = true
-}
-
-actual fun stopLocalVideo() {
-    try {
-        meetingSession?.audioVideo?.stopLocalVideo()
-        cameraCaptureSource?.stop()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    } finally {
-        cameraOn = false
-    }
-}
-
-@Composable
-actual fun LocalVideoView(modifier: Modifier, cameraFacing: CameraFacing, isOnTop: Boolean) {
-    VideoTileView(
-        tileId = VideoTileManager.localTileId,
-        modifier = modifier,
-        cameraFacing = cameraFacing,
-        isOnTop = isOnTop
-    )
-}
-
-@Composable
-actual fun RemoteVideoView(modifier: Modifier, tileId: Int, isOnTop: Boolean) {
-    VideoTileView(
+    @Composable
+    actual fun RemoteVideoView(modifier: Modifier, tileId: Int, isOnTop: Boolean) = VideoTileView(
         tileId = tileId,
         modifier = modifier,
-        isOnTop = isOnTop
+        isOnTop = isOnTop,
+        meetingSession = meetingSession,
+        videoTileManager = videoTileObserver!!
     )
-}
 
-actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) {
-    meetingSession?.audioVideo?.realtimeSendDataMessage(topic, data, lifetimeMs.toInt())
-}
+    actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) =
+        meetingSession.audioVideo.realtimeSendDataMessage(topic, data, lifetimeMs.toInt())
 
-actual fun setMute(shouldMute: Boolean): Boolean {
-    val success = if (shouldMute) {
-        meetingSession?.audioVideo?.realtimeLocalMute() ?: false
-    } else {
-        meetingSession?.audioVideo?.realtimeLocalUnmute() ?: false
-    }
-    return success
-}
+    actual fun setMute(shouldMute: Boolean): Boolean =
+        if (shouldMute) meetingSession.audioVideo.realtimeLocalMute() else meetingSession.audioVideo.realtimeLocalUnmute()
 
-actual fun switchCamera() {
-    val source = cameraCaptureSource ?: return
+    actual fun switchCamera() {
+        val source = cameraCaptureSource ?: return
 
-    val previous = currentCameraFacing
-    currentCameraFacing = if (currentCameraFacing == CameraFacing.FRONT) CameraFacing.BACK else CameraFacing.FRONT
+        val previous = currentCameraFacing
+        currentCameraFacing = if (currentCameraFacing == CameraFacing.FRONT) CameraFacing.BACK else CameraFacing.FRONT
 
-    val cm = appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    val devices = MediaDevice.listVideoDevices(cm)
-    cachedVideoDevices = devices
+        val cm = appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val devices = MediaDevice.listVideoDevices(cm)
+        cachedVideoDevices = devices
 
-    val desiredType = if (currentCameraFacing == CameraFacing.FRONT)
-        MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
+        val desiredType = if (currentCameraFacing == CameraFacing.FRONT)
+            MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
 
-    val newDevice = devices.firstOrNull { it.type == desiredType }
-    if (newDevice == null) {
-        currentCameraFacing = previous
-        return
-    }
-    source.device = newDevice
-}
-
-actual fun switchAudioDevice(device: String?) {
-    val targetChimeDevice = meetingSession
-        ?.audioVideo
-        ?.listAudioDevices()
-        ?.firstOrNull { it.label == device } ?: return
-    meetingSession?.audioVideo?.chooseAudioDevice(targetChimeDevice)
-}
-
-actual fun subscribeToTopic(topic: String, listener: (TextMessage) -> Unit) {
-    val session = meetingSession ?: return
-    val observer = object : DataMessageObserver {
-        override fun onDataMessageReceived(dataMessage: DataMessage) {
-            listener(TextMessage(
-                topic = dataMessage.topic,
-                senderId = dataMessage.senderAttendeeId,
-                content = dataMessage.text(),
-                timestamp = dataMessage.timestampMs
-            ))
+        val newDevice = devices.firstOrNull { it.type == desiredType }
+        if (newDevice == null) {
+            currentCameraFacing = previous
+            return
         }
+        source.device = newDevice
     }
-    topicObservers[topic] = observer
-    session.audioVideo.addRealtimeDataMessageObserver(topic, observer)
-}
 
-actual fun unsubscribeFromTopic(topic: String) {
-    meetingSession?.audioVideo?.removeRealtimeDataMessageObserverFromTopic(topic)
-    topicObservers.remove(topic)
+    actual fun switchAudioDevice(device: AudioDevice?) {
+        meetingSession.audioVideo.listAudioDevices()
+            .firstOrNull { it.label == device?.label }
+            ?.let(meetingSession.audioVideo::chooseAudioDevice)
+    }
+
+    actual fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit) =
+        meetingSession.audioVideo.addRealtimeDataMessageObserver(
+            topic = topic,
+            observer = DataMessageObserverImpl(listener)
+        )
+
+    actual fun unsubscribeFromTopic(topic: String) =
+        meetingSession.audioVideo.removeRealtimeDataMessageObserverFromTopic(topic)
 }

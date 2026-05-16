@@ -9,7 +9,6 @@ class DeviceObserver(
     private val meetingSession: DefaultMeetingSession,
     private val realTimeEventListener: RealTimeEventListener
 ) : DeviceChangeObserver {
-
     private var currentSelectedDevice: MediaDevice? = null
 
     override fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>) {
