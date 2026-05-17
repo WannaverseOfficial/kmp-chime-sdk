@@ -465,7 +465,11 @@ internal class ChimeMeetingImpl : NSObject(),
     }
 
     override fun attendeesDidJoinWithAttendeeInfo(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesJoined(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
+        val attendees = attendeeInfo.filterIsInstance<AttendeeInfo>()
+        realTimeListener?.onAttendeesJoined(
+            attendees.map { it.attendeeId() },
+            attendees.map { it.externalUserId() }
+        )
     }
 
     override fun attendeesDidLeaveWithAttendeeInfo(attendeeInfo: List<*>) {

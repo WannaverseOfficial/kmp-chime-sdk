@@ -7,7 +7,7 @@ package com.wannaverse.chimesdk
  */
 interface RealTimeEventListener {
     /** Invoked when one or more attendees join the meeting. */
-    fun onAttendeesJoined(attendeeIds: List<String>)
+    fun onAttendeesJoined(attendeeIds: List<String>, externalUserIds: List<String>)
 
     /** Invoked when one or more attendees are dropped unexpectedly. */
     fun onAttendeesDropped(attendeeIds: List<String>)

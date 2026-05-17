@@ -17,7 +17,10 @@ class RealTimeObserver : RealtimeObserver {
     }
 
     override fun onAttendeesJoined(attendeeInfo: Array<AttendeeInfo>) {
-        listener?.onAttendeesJoined(attendeeInfo.map { it.attendeeId })
+        listener?.onAttendeesJoined(
+            attendeeInfo.map { it.attendeeId },
+            attendeeInfo.map { it.externalUserId }
+        )
     }
 
     override fun onAttendeesLeft(attendeeInfo: Array<AttendeeInfo>) {
