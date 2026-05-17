@@ -465,31 +465,30 @@ internal class ChimeMeetingImpl : NSObject(),
     }
 
     override fun attendeesDidJoinWithAttendeeInfo(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesJoined(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
+        realTimeListener?.onAttendeesJoined(attendeeInfo.filterIsInstance<AttendeeInfo>().map { Attendee(it.attendeeId(), it.externalUserId()) })
     }
 
     override fun attendeesDidLeaveWithAttendeeInfo(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesLeft(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
+        realTimeListener?.onAttendeesLeft(attendeeInfo.filterIsInstance<AttendeeInfo>().map { Attendee(it.attendeeId(), it.externalUserId()) })
     }
 
     override fun attendeesDidDropWithAttendeeInfo(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesDropped(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
+        realTimeListener?.onAttendeesDropped(attendeeInfo.filterIsInstance<AttendeeInfo>().map { Attendee(it.attendeeId(), it.externalUserId()) })
     }
 
     override fun attendeesDidMuteWithAttendeeInfo(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesMuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
+        realTimeListener?.onAttendeesMuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { Attendee(it.attendeeId(), it.externalUserId()) })
     }
 
     override fun attendeesDidUnmuteWithAttendeeInfo(attendeeInfo: List<*>) {
-        realTimeListener?.onAttendeesUnmuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.attendeeId() })
+        realTimeListener?.onAttendeesUnmuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map { Attendee(it.attendeeId(), it.externalUserId()) })
     }
 
     override fun signalStrengthDidChangeWithSignalUpdates(signalUpdates: List<*>) {
         signalUpdates.filterIsInstance<SignalUpdate>().forEach { update ->
             realTimeListener?.onSignalStrengthChanged(
-                update.attendeeInfo().attendeeId(),
-                update.attendeeInfo().externalUserId(),
-                update.signalStrength().toInt()
+                attendee = Attendee(update.attendeeInfo().attendeeId(), update.attendeeInfo().externalUserId()),
+                signal = update.signalStrength().toInt()
             )
         }
     }
@@ -497,9 +496,8 @@ internal class ChimeMeetingImpl : NSObject(),
     override fun volumeDidChangeWithVolumeUpdates(volumeUpdates: List<*>) {
         volumeUpdates.filterIsInstance<VolumeUpdate>().forEach { update ->
             realTimeListener?.onVolumeChanged(
-                update.attendeeInfo().attendeeId(),
-                update.attendeeInfo().externalUserId(),
-                update.volumeLevel().toInt()
+                attendee = Attendee(update.attendeeInfo().attendeeId(), update.attendeeInfo().externalUserId()),
+                volume = update.volumeLevel().toInt()
             )
         }
     }

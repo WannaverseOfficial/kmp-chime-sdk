@@ -7,37 +7,35 @@ package com.wannaverse.chimesdk
  */
 interface RealTimeEventListener {
     /** Invoked when one or more attendees join the meeting. */
-    fun onAttendeesJoined(attendeeIds: List<String>)
+    fun onAttendeesJoined(attendees: List<Attendee>)
 
     /** Invoked when one or more attendees are dropped unexpectedly. */
-    fun onAttendeesDropped(attendeeIds: List<String>)
+    fun onAttendeesDropped(attendees: List<Attendee>)
 
     /** Invoked when one or more attendees leave the meeting cleanly. */
-    fun onAttendeesLeft(attendeeIds: List<String>)
+    fun onAttendeesLeft(attendees: List<Attendee>)
 
     /** Invoked when one or more attendees mute themselves. */
-    fun onAttendeesMuted(attendeeIds: List<String>)
+    fun onAttendeesMuted(attendees: List<Attendee>)
 
     /** Invoked when one or more attendees unmute themselves. */
-    fun onAttendeesUnmuted(attendeeIds: List<String>)
+    fun onAttendeesUnmuted(attendees: List<Attendee>)
 
     /**
      * Invoked when an attendee's signal strength changes.
      *
-     * @param attendeeId Chime attendee ID.
-     * @param externalAttendeeId Your app-defined user identifier.
+     * @param attendee The attendee whose signal strength changed.
      * @param signal Signal strength in the range [0, 1] where 1 is strongest.
      */
-    fun onSignalStrengthChanged(attendeeId: String, externalAttendeeId: String, signal: Int)
+    fun onSignalStrengthChanged(attendee: Attendee, signal: Int)
 
     /**
      * Invoked when an attendee's audio volume changes.
      *
-     * @param attendeeId Chime attendee ID.
-     * @param externalAttendeeId Your app-defined user identifier.
+     * @param attendee The attendee whose volume changed.
      * @param volume Volume level in the range [0, 1] where 1 is loudest.
      */
-    fun onVolumeChanged(attendeeId: String, externalAttendeeId: String, volume: Int)
+    fun onVolumeChanged(attendee: Attendee, volume: Int)
 
     /**
      * Invoked when the list of available audio devices changes or the active device changes.

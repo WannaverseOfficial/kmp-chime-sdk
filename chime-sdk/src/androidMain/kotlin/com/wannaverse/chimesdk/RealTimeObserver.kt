@@ -13,30 +13,29 @@ class RealTimeObserver : RealtimeObserver {
     }
 
     override fun onAttendeesDropped(attendeeInfo: Array<AttendeeInfo>) {
-        listener?.onAttendeesDropped(attendeeInfo.map { it.attendeeId })
+        listener?.onAttendeesDropped(attendeeInfo.map { Attendee(it.attendeeId, it.externalUserId) })
     }
 
     override fun onAttendeesJoined(attendeeInfo: Array<AttendeeInfo>) {
-        listener?.onAttendeesJoined(attendeeInfo.map { it.attendeeId })
+        listener?.onAttendeesJoined(attendeeInfo.map { Attendee(it.attendeeId, it.externalUserId) })
     }
 
     override fun onAttendeesLeft(attendeeInfo: Array<AttendeeInfo>) {
-        listener?.onAttendeesLeft(attendeeInfo.map { it.attendeeId })
+        listener?.onAttendeesLeft(attendeeInfo.map { Attendee(it.attendeeId, it.externalUserId) })
     }
 
     override fun onAttendeesMuted(attendeeInfo: Array<AttendeeInfo>) {
-        listener?.onAttendeesMuted(attendeeInfo.map { it.attendeeId })
+        listener?.onAttendeesMuted(attendeeInfo.map { Attendee(it.attendeeId, it.externalUserId) })
     }
 
     override fun onAttendeesUnmuted(attendeeInfo: Array<AttendeeInfo>) {
-        listener?.onAttendeesUnmuted(attendeeInfo.map { it.attendeeId })
+        listener?.onAttendeesUnmuted(attendeeInfo.map { Attendee(it.attendeeId, it.externalUserId) })
     }
 
     override fun onSignalStrengthChanged(signalUpdates: Array<SignalUpdate>) {
         signalUpdates.forEach { update ->
             listener?.onSignalStrengthChanged(
-                attendeeId = update.attendeeInfo.attendeeId,
-                externalAttendeeId = update.attendeeInfo.externalUserId,
+                attendee = Attendee(update.attendeeInfo.attendeeId, update.attendeeInfo.externalUserId),
                 signal = update.signalStrength.ordinal
             )
         }
@@ -45,8 +44,7 @@ class RealTimeObserver : RealtimeObserver {
     override fun onVolumeChanged(volumeUpdates: Array<VolumeUpdate>) {
         volumeUpdates.forEach { update ->
             listener?.onVolumeChanged(
-                attendeeId = update.attendeeInfo.attendeeId,
-                externalAttendeeId = update.attendeeInfo.externalUserId,
+                attendee = Attendee(update.attendeeInfo.attendeeId, update.attendeeInfo.externalUserId),
                 volume = update.volumeLevel.ordinal
             )
         }
