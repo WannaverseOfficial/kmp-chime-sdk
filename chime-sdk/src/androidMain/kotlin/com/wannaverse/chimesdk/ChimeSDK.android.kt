@@ -132,10 +132,7 @@ actual class ChimeSDK(
         onLocalTileAdded: (Int) -> Unit,
         onLocalTileRemoved: () -> Unit,
         onRemoteTileAdded: (Int) -> Unit,
-        onRemoteTileRemoved: () -> Unit,
-        onChatMessageReceived: (ChimeMessage) -> Unit,
-        onEmojiReceived: (ChimeMessage) -> Unit,
-        onSystemMessage: (ChimeMessage) -> Unit,
+        onRemoteTileRemoved: () -> Unit
     ) {
         val realTimeObserver = RealTimeObserverImpl(realTimeListener)
         meetingSession.audioVideo.addRealtimeObserver(realTimeObserver)
@@ -171,19 +168,6 @@ actual class ChimeSDK(
         meetingSession.audioVideo.addActiveSpeakerObserver(
             observer = activeSpeakerObserver,
             policy = DefaultActiveSpeakerPolicy()
-        )
-
-        meetingSession.audioVideo.addRealtimeDataMessageObserver(
-            topic = "chat",
-            observer = DataMessageObserverImpl(onChatMessageReceived)
-        )
-        meetingSession.audioVideo.addRealtimeDataMessageObserver(
-            topic = "emoji",
-            observer = DataMessageObserverImpl(onEmojiReceived)
-        )
-        meetingSession.audioVideo.addRealtimeDataMessageObserver(
-            topic = "system",
-            observer = DataMessageObserverImpl(onSystemMessage)
         )
 
         try {

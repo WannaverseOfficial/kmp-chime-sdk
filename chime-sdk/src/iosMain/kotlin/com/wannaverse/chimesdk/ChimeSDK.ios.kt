@@ -234,10 +234,7 @@ actual class ChimeSDK(
         onLocalTileAdded: (Int) -> Unit,
         onLocalTileRemoved: () -> Unit,
         onRemoteTileAdded: (Int) -> Unit,
-        onRemoteTileRemoved: () -> Unit,
-        onChatMessageReceived: (ChimeMessage) -> Unit,
-        onEmojiReceived: (ChimeMessage) -> Unit,
-        onSystemMessage: (ChimeMessage) -> Unit,
+        onRemoteTileRemoved: () -> Unit
     ) {
         val realtimeObserver = RealTimeObserverImpl(realTimeListener)
         meetingSession.audioVideo().addRealtimeObserverWithObserver(realtimeObserver)
@@ -265,19 +262,6 @@ actual class ChimeSDK(
         )
 
         configureAudioSession()
-
-        meetingSession.audioVideo().addRealtimeDataMessageObserverWithTopic(
-            topic = "chat",
-            observer = DataMessageObserverImpl(onChatMessageReceived)
-        )
-        meetingSession.audioVideo().addRealtimeDataMessageObserverWithTopic(
-            topic = "emoji",
-            observer = DataMessageObserverImpl(onEmojiReceived)
-        )
-        meetingSession.audioVideo().addRealtimeDataMessageObserverWithTopic(
-            topic = "system",
-            observer = DataMessageObserverImpl(onSystemMessage)
-        )
 //        meetingSession.audioVideo().listAudioDevices().filterIsInstance<MediaDevice>().firstOrNull()?.let {
 //            meetingSession.audioVideo().chooseAudioDeviceWithMediaDevice(mediaDevice = it)
 //        }

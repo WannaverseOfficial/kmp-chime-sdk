@@ -65,10 +65,7 @@ expect class ChimeSDK {
         onLocalTileAdded: (Int) -> Unit,
         onLocalTileRemoved: () -> Unit,
         onRemoteTileAdded: (Int) -> Unit,
-        onRemoteTileRemoved: () -> Unit,
-        onChatMessageReceived: (ChimeMessage) -> Unit,
-        onEmojiReceived: (ChimeMessage) -> Unit,
-        onSystemMessage: (ChimeMessage) -> Unit,
+        onRemoteTileRemoved: () -> Unit
     )
 
     /** Ends the active meeting session and releases all resources. */
