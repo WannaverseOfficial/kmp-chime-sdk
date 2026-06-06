@@ -410,7 +410,15 @@ internal class ChimeMeetingImpl : NSObject(),
 
     override fun audioSessionDidStopWithStatusWithSessionStatus(sessionStatus: MeetingSessionStatus) {
         onConnectionStatusChanged?.invoke(ConnectionStatus.DISCONNECTED)
-        onSessionError?.invoke("Session ended: ${sessionStatus.statusCode()}", false)
+
+        val message = when (sessionStatus.statusCode()) {
+            MeetingSessionStatusCodeOk -> "Meeting ended"
+            MeetingSessionStatusCodeAudioJoinedFromAnotherDevice -> "Joined from another device"
+            MeetingSessionStatusCodeAudioDisconnectAudio -> "Disconnected remotely"
+            MeetingSessionStatusCodeAudioCallEnded -> "Session ended: AudioCallEnded"
+            else -> "Session ended: ${sessionStatus.statusCode()}"
+        }
+        onSessionError?.invoke(message, false)
     }
 
     override fun audioSessionDidCancelReconnect() {
