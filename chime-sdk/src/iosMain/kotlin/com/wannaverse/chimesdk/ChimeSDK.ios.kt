@@ -24,6 +24,10 @@ import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioWiredHeadset
 import cocoapods.AmazonChimeSDK.MeetingSessionConfiguration
 import cocoapods.AmazonChimeSDK.MeetingSessionCredentials
 import cocoapods.AmazonChimeSDK.MeetingSessionStatus
+import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeAudioCallEnded
+import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeAudioDisconnectAudio
+import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeAudioJoinedFromAnotherDevice
+import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeOk
 import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeVideoAtCapacityViewOnly
 import cocoapods.AmazonChimeSDK.MeetingSessionURLs
 import cocoapods.AmazonChimeSDK.RealtimeObserverProtocol
@@ -443,7 +447,15 @@ actual class ChimeSDK(
 
     override fun audioSessionDidStopWithStatusWithSessionStatus(sessionStatus: MeetingSessionStatus) {
         onConnectionStatusChanged?.invoke(ConnectionStatus.DISCONNECTED)
-        onSessionError?.invoke("Session ended: ${sessionStatus.statusCode()}", false)
+
+        val message = when (sessionStatus.statusCode()) {
+            MeetingSessionStatusCodeOk -> "Meeting ended"
+            MeetingSessionStatusCodeAudioJoinedFromAnotherDevice -> "Joined from another device"
+            MeetingSessionStatusCodeAudioDisconnectAudio -> "Disconnected remotely"
+            MeetingSessionStatusCodeAudioCallEnded -> "Session ended: AudioCallEnded"
+            else -> "Session ended: ${sessionStatus.statusCode()}"
+        }
+        onSessionError?.invoke(message, false)
     }
 
     override fun audioSessionDidCancelReconnect() {

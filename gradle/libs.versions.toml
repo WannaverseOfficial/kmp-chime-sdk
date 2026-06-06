@@ -3,32 +3,18 @@ agp = "8.11.2"
 android-compileSdk = "37"
 android-minSdk = "24"
 android-targetSdk = "37"
-androidx-activity = "1.13.0"
-androidx-lifecycle = "2.10.0"
 composeMultiplatform = "1.10.3"
 kotlin = "2.3.20"
-material3 = "1.10.0-alpha05"
-kermit = "2.1.0"
 
 amazonChimeSdk = "0.25.2"
 
 [libraries]
-kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
-
 amazon-chime-sdk = { module = "software.aws.chimesdk:amazon-chime-sdk", version.ref = "amazonChimeSdk" }
 amazon-chime-sdk-media = { module = "software.aws.chimesdk:amazon-chime-sdk-media", version.ref = "amazonChimeSdk" }
 
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
-compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
-androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
-androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
-compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
