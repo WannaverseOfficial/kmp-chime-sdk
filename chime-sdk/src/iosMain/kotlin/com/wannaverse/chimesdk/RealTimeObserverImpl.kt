@@ -14,6 +14,10 @@ private fun AttendeeInfo.toAttendee() = Attendee(attendeeId(), externalUserId())
 class RealTimeObserverImpl(val listener: RealTimeEventListener) : NSObject(), RealtimeObserverProtocol {
     init {
         val _this: RealtimeObserverProtocol = this
+
+        ProtocolDescriptor(
+            candidates = listOf("RealtimeObserver", "_TtP14AmazonChimeSDK16RealtimeObserver_")
+        ).forceRegisterProtocol(this)
     }
 
     override fun attendeesDidUnmuteWithAttendeeInfo(attendeeInfo: List<*>) =

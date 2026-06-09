@@ -9,8 +9,6 @@ import cocoapods.AmazonChimeSDK.ActiveSpeakerObserverProtocol
 import cocoapods.AmazonChimeSDK.AttendeeInfo
 import cocoapods.AmazonChimeSDK.AudioVideoObserverProtocol
 import cocoapods.AmazonChimeSDK.ConsoleLogger
-import cocoapods.AmazonChimeSDK.DataMessage
-import cocoapods.AmazonChimeSDK.DataMessageObserverProtocol
 import cocoapods.AmazonChimeSDK.DefaultActiveSpeakerPolicy
 import cocoapods.AmazonChimeSDK.DefaultMeetingSession
 import cocoapods.AmazonChimeSDK.DefaultVideoRenderView
@@ -30,13 +28,9 @@ import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeAudioJoinedFromAnotherDe
 import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeOk
 import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeVideoAtCapacityViewOnly
 import cocoapods.AmazonChimeSDK.MeetingSessionURLs
-import cocoapods.AmazonChimeSDK.RealtimeObserverProtocol
 import cocoapods.AmazonChimeSDK.RemoteVideoSource
-import cocoapods.AmazonChimeSDK.SignalUpdate
 import cocoapods.AmazonChimeSDK.VideoTileObserverProtocol
 import cocoapods.AmazonChimeSDK.VideoTileState
-import cocoapods.AmazonChimeSDK.VolumeUpdate
-import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
 import platform.AVFAudio.AVAudioSession
@@ -52,10 +46,6 @@ import platform.CoreGraphics.CGRect
 import platform.Foundation.NSOperationQueue
 import platform.UIKit.UIView
 import platform.darwin.NSObject
-import platform.objc.class_addProtocol
-import platform.objc.objc_getProtocol
-import platform.objc.object_getClass
-import kotlin.collections.orEmpty
 import kotlin.collections.set
 
 private val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
@@ -132,62 +122,31 @@ actual class ChimeSDK(
     var onRemoteTileRemoved: (() -> Unit)? = null
     var realTimeListener: RealTimeEventListener? = null
 
-    override fun observerId(): String = "KotlinChimeMeeting"
-
-    private data class ObserverProtocolDescriptor(
-        val label: String,
-        val candidates: List<String>
-    )
-
     init {
         @Suppress("UNUSED_VARIABLE") val _1: AudioVideoObserverProtocol = this
         @Suppress("UNUSED_VARIABLE") val _3: VideoTileObserverProtocol = this
         @Suppress("UNUSED_VARIABLE") val _4: DeviceChangeObserverProtocol = this
         @Suppress("UNUSED_VARIABLE") val _5: ActiveSpeakerObserverProtocol = this
 
-        forceRegisterObserverProtocols()
-    }
-
-    private fun resolveProtocolName(descriptor: ObserverProtocolDescriptor): String? =
-        descriptor.candidates.firstOrNull { objc_getProtocol(it) != null }
-
-    @OptIn(BetaInteropApi::class)
-    private fun forceRegisterObserverProtocols() {
-        val cls = object_getClass(this) ?: return
-
         val observerProtocols = listOf(
-            ObserverProtocolDescriptor(
-                label = "audio",
+            ProtocolDescriptor(
                 candidates = listOf("AudioVideoObserver", "_TtP14AmazonChimeSDK18AudioVideoObserver_")
             ),
-            ObserverProtocolDescriptor(
-                label = "realtime",
-                candidates = listOf("RealtimeObserver", "_TtP14AmazonChimeSDK16RealtimeObserver_")
-            ),
-            ObserverProtocolDescriptor(
-                label = "tile",
+            ProtocolDescriptor(
                 candidates = listOf("VideoTileObserver", "_TtP14AmazonChimeSDK17VideoTileObserver_")
             ),
-            ObserverProtocolDescriptor(
-                label = "device",
+            ProtocolDescriptor(
                 candidates = listOf("DeviceChangeObserver", "_TtP14AmazonChimeSDK20DeviceChangeObserver_")
             ),
-            ObserverProtocolDescriptor(
-                label = "speaker",
+            ProtocolDescriptor(
                 candidates = listOf("ActiveSpeakerObserver", "_TtP14AmazonChimeSDK21ActiveSpeakerObserver_")
             ),
-            ObserverProtocolDescriptor(
-                label = "data",
-                candidates = listOf("DataMessageObserver", "_TtP14AmazonChimeSDK19DataMessageObserver_")
-            )
         )
 
-        for (descriptor in observerProtocols) {
-            val protocolName = resolveProtocolName(descriptor) ?: continue
-            val protocol = objc_getProtocol(protocolName)
-            if (protocol != null) class_addProtocol(cls, protocol)
-        }
+        observerProtocols.forEach { it.forceRegisterProtocol(this) }
     }
+
+    override fun observerId(): String = "KotlinChimeMeeting"
 
     actual fun getAvailableInputDevices(): List<AudioDevice> =
         meetingSession.audioVideo()

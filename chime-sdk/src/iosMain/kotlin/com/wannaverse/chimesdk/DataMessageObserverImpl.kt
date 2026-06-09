@@ -9,6 +9,10 @@ import platform.darwin.NSObject
 class DataMessageObserverImpl(private val listener: (ChimeMessage) -> Unit) : NSObject(), DataMessageObserverProtocol {
     init {
         val _this: DataMessageObserverProtocol = this
+
+        ProtocolDescriptor(
+            candidates = listOf("DataMessageObserver", "_TtP14AmazonChimeSDK19DataMessageObserver_")
+        ).forceRegisterProtocol(this)
     }
 
     override fun dataMessageDidReceivedWithDataMessage(dataMessage: DataMessage) = listener(
