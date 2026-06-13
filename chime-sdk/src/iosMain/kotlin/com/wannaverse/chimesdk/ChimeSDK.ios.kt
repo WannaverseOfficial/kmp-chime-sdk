@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalForeignApi::class)
-
 package com.wannaverse.chimesdk
 
 import androidx.compose.runtime.Composable
@@ -12,7 +10,6 @@ import cocoapods.AmazonChimeSDK.ConsoleLogger
 import cocoapods.AmazonChimeSDK.DefaultActiveSpeakerPolicy
 import cocoapods.AmazonChimeSDK.DefaultMeetingSession
 import cocoapods.AmazonChimeSDK.DefaultVideoRenderView
-import cocoapods.AmazonChimeSDK.DeviceChangeObserverProtocol
 import cocoapods.AmazonChimeSDK.LogLevelINFO
 import cocoapods.AmazonChimeSDK.MediaDevice
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBluetooth
@@ -46,19 +43,18 @@ import platform.CoreGraphics.CGRect
 import platform.Foundation.NSOperationQueue
 import platform.UIKit.UIView
 import platform.darwin.NSObject
-import kotlin.collections.set
-
-private val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
 
 @Suppress(names = ["EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING"])
+@OptIn(ExperimentalForeignApi::class)
 actual class ChimeSDK(
     private val meetingSession: DefaultMeetingSession
 ) : NSObject(),
     AudioVideoObserverProtocol,
     VideoTileObserverProtocol,
-    DeviceChangeObserverProtocol,
     ActiveSpeakerObserverProtocol {
     actual companion object {
+        private val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
+
         actual fun createSession(
             externalMeetingId: String,
             meetingId: String,
@@ -124,9 +120,8 @@ actual class ChimeSDK(
 
     init {
         @Suppress("UNUSED_VARIABLE") val _1: AudioVideoObserverProtocol = this
-        @Suppress("UNUSED_VARIABLE") val _3: VideoTileObserverProtocol = this
-        @Suppress("UNUSED_VARIABLE") val _4: DeviceChangeObserverProtocol = this
-        @Suppress("UNUSED_VARIABLE") val _5: ActiveSpeakerObserverProtocol = this
+        @Suppress("UNUSED_VARIABLE") val _2: VideoTileObserverProtocol = this
+        @Suppress("UNUSED_VARIABLE") val _3: ActiveSpeakerObserverProtocol = this
 
         val observerProtocols = listOf(
             ProtocolDescriptor(
@@ -134,9 +129,6 @@ actual class ChimeSDK(
             ),
             ProtocolDescriptor(
                 candidates = listOf("VideoTileObserver", "_TtP14AmazonChimeSDK17VideoTileObserver_")
-            ),
-            ProtocolDescriptor(
-                candidates = listOf("DeviceChangeObserver", "_TtP14AmazonChimeSDK20DeviceChangeObserver_")
             ),
             ProtocolDescriptor(
                 candidates = listOf("ActiveSpeakerObserver", "_TtP14AmazonChimeSDK21ActiveSpeakerObserver_")
@@ -202,6 +194,14 @@ actual class ChimeSDK(
         val realtimeObserver = RealTimeObserverImpl(realTimeListener)
         meetingSession.audioVideo().addRealtimeObserverWithObserver(realtimeObserver)
 
+        val deviceObserver = DeviceObserver(meetingSession, realTimeListener)
+        meetingSession.audioVideo().addDeviceChangeObserverWithObserver(deviceObserver)
+
+        meetingSession.audioVideo().listAudioDevices()
+            .filterIsInstance<MediaDevice>()
+            .firstOrNull { it.label() == selectedAudioInputDevice }
+            ?.let(deviceObserver::selectAudioDevice)
+
         this.onActiveSpeakersChanged = onActiveSpeakersChanged
         this.onLocalVideoTileAdded = onLocalTileAdded
         this.onConnectionStatusChanged = onConnectionStatusChanged
@@ -218,16 +218,12 @@ actual class ChimeSDK(
 
         meetingSession.audioVideo().addVideoTileObserverWithObserver(observer = this)
         meetingSession.audioVideo().addAudioVideoObserverWithObserver(observer = this)
-        meetingSession.audioVideo().addDeviceChangeObserverWithObserver(observer = this)
         meetingSession.audioVideo().addActiveSpeakerObserverWithPolicy(
             policy = DefaultActiveSpeakerPolicy(),
             observer = this
         )
 
         configureAudioSession()
-//        meetingSession.audioVideo().listAudioDevices().filterIsInstance<MediaDevice>().firstOrNull()?.let {
-//            meetingSession.audioVideo().chooseAudioDeviceWithMediaDevice(mediaDevice = it)
-//        }
 
         AVAudioSession.sharedInstance().requestRecordPermission { _ ->
             AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { _ ->
@@ -249,7 +245,6 @@ actual class ChimeSDK(
         meetingSession.audioVideo().stop()
         meetingSession.audioVideo().removeVideoTileObserverWithObserver(observer = this)
         meetingSession.audioVideo().removeAudioVideoObserverWithObserver(observer = this)
-        meetingSession.audioVideo().removeDeviceChangeObserverWithObserver(observer = this)
         meetingSession.audioVideo().removeActiveSpeakerObserverWithObserver(observer = this)
         localTileId = null
         remoteTiles.clear()
@@ -373,7 +368,7 @@ actual class ChimeSDK(
 
     fun rebindRemoteView(tileId: Int) {
         val renderView = remoteTiles[tileId.toLong()] ?: return
-        meetingSession?.audioVideo()?.bindVideoViewWithVideoView(videoView = renderView, tileId = tileId.toLong())
+        meetingSession.audioVideo().bindVideoViewWithVideoView(videoView = renderView, tileId = tileId.toLong())
     }
 
     private fun configureAudioSession() {
@@ -459,10 +454,8 @@ actual class ChimeSDK(
     override fun cameraSendAvailabilityDidChangeWithAvailable(available: Boolean) {
         onCameraSendAvailable?.invoke(available)
 
-        val session = meetingSession ?: return
-
         if (available && !didStartLocalVideo) {
-            session.audioVideo().startLocalVideoAndReturnError(null)
+            meetingSession.audioVideo().startLocalVideoAndReturnError(null)
             didStartLocalVideo = true
             isLocalVideoStarted = true
         }
@@ -473,13 +466,14 @@ actual class ChimeSDK(
 
         if (tileState.isLocalTile()) {
             localTileId = tileId
-            meetingSession?.audioVideo()?.bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
+            meetingSession.audioVideo()
+                .bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
             onLocalVideoTileAdded?.invoke(tileId.toInt())
         } else {
             val attendeeId = tileState.attendeeId()
             val oldTileId = attendeeTileMap[attendeeId]
             if (oldTileId != null && oldTileId != tileId) {
-                meetingSession?.audioVideo()?.unbindVideoViewWithTileId(tileId = oldTileId)
+                meetingSession.audioVideo().unbindVideoViewWithTileId(tileId = oldTileId)
                 remoteTiles.remove(oldTileId)
                 attendeeTileMap.remove(attendeeId)
                 onRemoteTileRemoved?.invoke()
@@ -496,7 +490,7 @@ actual class ChimeSDK(
     override fun videoTileDidRemoveWithTileState(tileState: VideoTileState) {
         val tileId = tileState.tileId()
 
-        meetingSession?.audioVideo()?.unbindVideoViewWithTileId(tileId = tileId)
+        meetingSession.audioVideo().unbindVideoViewWithTileId(tileId = tileId)
 
         if (tileId == localTileId) {
             localTileId = null
@@ -516,7 +510,7 @@ actual class ChimeSDK(
         val tileId = tileState.tileId()
         if (tileState.isLocalTile()) {
             localTileId = tileId
-            meetingSession?.audioVideo()?.bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
+            meetingSession.audioVideo().bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
             onLocalVideoTileAdded?.invoke(tileId.toInt())
         } else {
             val renderView = remoteTiles.getOrPut(tileId) {
@@ -529,8 +523,6 @@ actual class ChimeSDK(
     }
 
     override fun videoTileSizeDidChangeWithTileState(tileState: VideoTileState) {}
-
-    override fun audioDeviceDidChangeWithFreshAudioDeviceList(freshAudioDeviceList: List<*>) {}
 
     override fun activeSpeakerDidDetectWithAttendeeInfo(attendeeInfo: List<*>) {
         val ids = attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.externalUserId() }.toSet()
