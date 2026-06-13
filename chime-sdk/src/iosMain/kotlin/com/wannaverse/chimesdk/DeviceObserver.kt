@@ -8,12 +8,13 @@ import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBuiltInSpeaker
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioHandset
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioWiredHeadset
 import kotlinx.cinterop.ExperimentalForeignApi
+import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
 class DeviceObserver(
     private val meetingSession: DefaultMeetingSession,
     private val realTimeEventListener: RealTimeEventListener
-) : DeviceChangeObserverProtocol {
+) : NSObject(), DeviceChangeObserverProtocol {
     init {
         val _this: DeviceChangeObserverProtocol = this
 
