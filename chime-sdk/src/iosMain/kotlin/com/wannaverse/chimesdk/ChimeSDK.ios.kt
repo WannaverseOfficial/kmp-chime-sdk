@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.wannaverse.chimesdk
 
 import androidx.compose.runtime.Composable
@@ -44,8 +46,9 @@ import platform.Foundation.NSOperationQueue
 import platform.UIKit.UIView
 import platform.darwin.NSObject
 
+private val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
+
 @Suppress(names = ["EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING"])
-@OptIn(ExperimentalForeignApi::class)
 actual class ChimeSDK(
     private val meetingSession: DefaultMeetingSession
 ) : NSObject(),
@@ -53,8 +56,6 @@ actual class ChimeSDK(
     VideoTileObserverProtocol,
     ActiveSpeakerObserverProtocol {
     actual companion object {
-        private val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
-
         actual fun createSession(
             externalMeetingId: String,
             meetingId: String,
