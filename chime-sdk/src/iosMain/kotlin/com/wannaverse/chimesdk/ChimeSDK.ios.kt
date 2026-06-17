@@ -53,8 +53,7 @@ actual class ChimeSDK(
     private val meetingSession: DefaultMeetingSession
 ) : NSObject(),
     AudioVideoObserverProtocol,
-    VideoTileObserverProtocol,
-    ActiveSpeakerObserverProtocol {
+    VideoTileObserverProtocol {
     actual companion object {
         actual fun createSession(
             externalMeetingId: String,
@@ -108,7 +107,6 @@ actual class ChimeSDK(
     val localRenderView: DefaultVideoRenderView = DefaultVideoRenderView().also { it.setMirror(true) }
     internal val localVideoContainer: LocalVideoContainerView = LocalVideoContainerView(localRenderView).also { it.addSubview(localRenderView) }
     var onConnectionStatusChanged: ((ConnectionStatus) -> Unit)? = null
-    var onActiveSpeakersChanged: ((Set<String>) -> Unit)? = null
     var onLocalVideoTileAdded: ((Int) -> Unit)? = null
     var onRemoteVideoAvailable: ((Boolean, Int) -> Unit)? = null
     var onCameraSendAvailable: ((Boolean) -> Unit)? = null
@@ -122,7 +120,6 @@ actual class ChimeSDK(
     init {
         @Suppress("UNUSED_VARIABLE") val _1: AudioVideoObserverProtocol = this
         @Suppress("UNUSED_VARIABLE") val _2: VideoTileObserverProtocol = this
-        @Suppress("UNUSED_VARIABLE") val _3: ActiveSpeakerObserverProtocol = this
 
         val observerProtocols = listOf(
             ProtocolDescriptor(
@@ -130,16 +127,11 @@ actual class ChimeSDK(
             ),
             ProtocolDescriptor(
                 candidates = listOf("VideoTileObserver", "_TtP14AmazonChimeSDK17VideoTileObserver_")
-            ),
-            ProtocolDescriptor(
-                candidates = listOf("ActiveSpeakerObserver", "_TtP14AmazonChimeSDK21ActiveSpeakerObserver_")
-            ),
+            )
         )
 
         observerProtocols.forEach { it.forceRegisterProtocol(this) }
     }
-
-    override fun observerId(): String = "KotlinChimeMeeting"
 
     actual fun getAvailableInputDevices(): List<AudioDevice> =
         meetingSession.audioVideo()
@@ -203,7 +195,6 @@ actual class ChimeSDK(
             .firstOrNull { it.label() == selectedAudioInputDevice }
             ?.let(deviceObserver::selectAudioDevice)
 
-        this.onActiveSpeakersChanged = onActiveSpeakersChanged
         this.onLocalVideoTileAdded = onLocalTileAdded
         this.onConnectionStatusChanged = onConnectionStatusChanged
         this.onRemoteVideoAvailable = onRemoteVideoAvailable
@@ -219,9 +210,11 @@ actual class ChimeSDK(
 
         meetingSession.audioVideo().addVideoTileObserverWithObserver(observer = this)
         meetingSession.audioVideo().addAudioVideoObserverWithObserver(observer = this)
+
+        val activeSpeakerObserver = ActiveSpeakerObserver(onActiveSpeakersChanged)
         meetingSession.audioVideo().addActiveSpeakerObserverWithPolicy(
             policy = DefaultActiveSpeakerPolicy(),
-            observer = this
+            observer = activeSpeakerObserver
         )
 
         configureAudioSession()
@@ -246,7 +239,6 @@ actual class ChimeSDK(
         meetingSession.audioVideo().stop()
         meetingSession.audioVideo().removeVideoTileObserverWithObserver(observer = this)
         meetingSession.audioVideo().removeAudioVideoObserverWithObserver(observer = this)
-        meetingSession.audioVideo().removeActiveSpeakerObserverWithObserver(observer = this)
         localTileId = null
         remoteTiles.clear()
         attendeeTileMap.clear()
@@ -260,7 +252,6 @@ actual class ChimeSDK(
 
     private fun clearCallbacks() {
         onConnectionStatusChanged = null
-        onActiveSpeakersChanged = null
         onLocalVideoTileAdded = null
         onRemoteVideoAvailable = null
         onCameraSendAvailable = null
@@ -373,15 +364,14 @@ actual class ChimeSDK(
     }
 
     private fun configureAudioSession() {
-        val s = AVAudioSession.sharedInstance()
-        s.setCategory(
-            AVAudioSessionCategoryPlayAndRecord,
+        val audioSession = AVAudioSession.sharedInstance()
+        audioSession.setCategory(
+            category = AVAudioSessionCategoryPlayAndRecord,
             mode = AVAudioSessionModeVideoChat,
-            options = AVAudioSessionCategoryOptionAllowBluetoothHFP or
-                    AVAudioSessionCategoryOptionAllowBluetoothA2DP,
+            options = AVAudioSessionCategoryOptionAllowBluetoothHFP or AVAudioSessionCategoryOptionAllowBluetoothA2DP,
             error = null
         )
-        s.setActive(true, error = null)
+        audioSession.setActive(true, null)
     }
 
     private var isLocalVideoStarted = false
@@ -524,11 +514,4 @@ actual class ChimeSDK(
     }
 
     override fun videoTileSizeDidChangeWithTileState(tileState: VideoTileState) {}
-
-    override fun activeSpeakerDidDetectWithAttendeeInfo(attendeeInfo: List<*>) {
-        val ids = attendeeInfo.filterIsInstance<AttendeeInfo>().map { it.externalUserId() }.toSet()
-        onActiveSpeakersChanged?.invoke(ids)
-    }
-
-    override fun activeSpeakerScoreDidChangeWithScores(scores: Map<Any?, *>) {}
 }

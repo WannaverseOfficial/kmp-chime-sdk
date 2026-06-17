@@ -21,10 +21,10 @@ class RealTimeObserverImpl(val listener: RealTimeEventListener) : NSObject(), Re
     }
 
     override fun attendeesDidUnmuteWithAttendeeInfo(attendeeInfo: List<*>) =
-        listener.onAttendeesDropped(attendeeInfo.filterIsInstance<AttendeeInfo>().map(AttendeeInfo::toAttendee))
+        listener.onAttendeesUnmuted(attendeeInfo.filterIsInstance<AttendeeInfo>().map(AttendeeInfo::toAttendee))
 
     override fun attendeesDidDropWithAttendeeInfo(attendeeInfo: List<*>) =
-        listener.onAttendeesJoined(attendeeInfo.filterIsInstance<AttendeeInfo>().map(AttendeeInfo::toAttendee))
+        listener.onAttendeesDropped(attendeeInfo.filterIsInstance<AttendeeInfo>().map(AttendeeInfo::toAttendee))
 
     override fun attendeesDidJoinWithAttendeeInfo(attendeeInfo: List<*>) =
         listener.onAttendeesJoined(attendeeInfo.filterIsInstance<AttendeeInfo>().map(AttendeeInfo::toAttendee))
@@ -38,7 +38,7 @@ class RealTimeObserverImpl(val listener: RealTimeEventListener) : NSObject(), Re
     override fun volumeDidChangeWithVolumeUpdates(volumeUpdates: List<*>) =
         volumeUpdates.filterIsInstance<VolumeUpdate>().forEach { update ->
             listener.onVolumeChanged(
-                attendee = Attendee(update.attendeeInfo().attendeeId(), update.attendeeInfo().externalUserId()),
+                attendee = update.attendeeInfo().toAttendee(),
                 volume = update.volumeLevel().toInt()
             )
         }
@@ -46,7 +46,7 @@ class RealTimeObserverImpl(val listener: RealTimeEventListener) : NSObject(), Re
     override fun signalStrengthDidChangeWithSignalUpdates(signalUpdates: List<*>) =
         signalUpdates.filterIsInstance<SignalUpdate>().forEach { update ->
             listener.onSignalStrengthChanged(
-                attendee = Attendee(update.attendeeInfo().attendeeId(), update.attendeeInfo().externalUserId()),
+                attendee = update.attendeeInfo().toAttendee(),
                 signal = update.signalStrength().toInt()
             )
         }

@@ -23,21 +23,19 @@ class RealTimeObserverImpl(val listener: RealTimeEventListener) : RealtimeObserv
     override fun onAttendeesUnmuted(attendeeInfo: Array<AttendeeInfo>) =
         listener.onAttendeesUnmuted(attendeeInfo.map(AttendeeInfo::toAttendee))
 
-    override fun onSignalStrengthChanged(signalUpdates: Array<SignalUpdate>) {
+    override fun onSignalStrengthChanged(signalUpdates: Array<SignalUpdate>) =
         signalUpdates.forEach { update ->
             listener.onSignalStrengthChanged(
-                attendee = Attendee(update.attendeeInfo.attendeeId, update.attendeeInfo.externalUserId),
+                attendee = update.attendeeInfo.toAttendee(),
                 signal = update.signalStrength.value
             )
         }
-    }
 
-    override fun onVolumeChanged(volumeUpdates: Array<VolumeUpdate>) {
+    override fun onVolumeChanged(volumeUpdates: Array<VolumeUpdate>) =
         volumeUpdates.forEach { update ->
             listener.onVolumeChanged(
-                attendee = Attendee(update.attendeeInfo.attendeeId, update.attendeeInfo.externalUserId),
+                attendee = update.attendeeInfo.toAttendee(),
                 volume = update.volumeLevel.value
             )
         }
-    }
 }

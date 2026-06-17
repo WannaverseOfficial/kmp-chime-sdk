@@ -34,8 +34,20 @@ expect class ChimeSDK {
         ): ChimeSDK
     }
 
+    /**
+     * Returns the currently available audio input devices such as microphones.
+     *
+     * The returned list reflects the devices detected by the current platform at
+     * the time of the call and may change as hardware is connected or removed.
+     */
     fun getAvailableInputDevices(): List<AudioDevice>
 
+    /**
+     * Returns the currently available audio output devices such as speakers and headsets.
+     *
+     * The returned list reflects the devices detected by the current platform at
+     * the time of the call and may change as hardware is connected or removed.
+     */
     fun getAvailableOutputDevices(): List<AudioDevice>
 
     /**
