@@ -4,14 +4,13 @@ import cocoapods.AmazonChimeSDK.ActiveSpeakerObserverProtocol
 import cocoapods.AmazonChimeSDK.AttendeeInfo
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSInteger
+import platform.darwin.NSObject
+
+private const val SPEAKING_THRESHOLD = 0.05
 
 @OptIn(ExperimentalForeignApi::class)
 class ActiveSpeakerObserver(val onActiveSpeakersChanged: (Set<String>) -> Unit) :
-    ActiveSpeakerObserverProtocol {
-    companion object Companion {
-        private const val SPEAKING_THRESHOLD = 0.05
-    }
-
+    NSObject(), ActiveSpeakerObserverProtocol {
     init {
         val _this: ActiveSpeakerObserverProtocol = this
 

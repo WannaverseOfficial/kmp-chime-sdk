@@ -15,7 +15,6 @@ class AudioVideoObserverImpl(
     private val onVideoNeedsRestart: () -> Unit,
     private val isJoiningOnMute: Boolean
 ) : AudioVideoObserver {
-
     private var isVideoSessionActive = false
     private var shouldRestartVideoAfterReconnect = false
 
