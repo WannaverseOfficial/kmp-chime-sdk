@@ -77,12 +77,6 @@ actual class ChimeSDK(
         }
     }
 
-    private var videoTileObserver: VideoTileManager? = null
-    private var cameraCaptureSource: CameraCaptureSource? = null
-    private var cachedVideoDevices: List<MediaDevice>? = null
-    private var currentCameraFacing = CameraFacing.FRONT
-    private var cameraOn = false
-
     actual fun getAvailableInputDevices(): List<AudioDevice> =
         meetingSession.audioVideo
             .listAudioDevices()
@@ -119,6 +113,18 @@ actual class ChimeSDK(
                 )
             }
 
+    private lateinit var realTimeObserver: RealTimeObserverImpl
+    private lateinit var deviceObserver: DeviceObserverImpl
+    private lateinit var videoTileObserver: VideoTileObserverImpl
+    private lateinit var audioVideoObserver: AudioVideoObserverImpl
+    private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
+    private lateinit var dataMessageObserver: DataMessageObserverImpl
+
+    private var cameraCaptureSource: CameraCaptureSource? = null
+    private var cachedVideoDevices: List<MediaDevice>? = null
+    private var currentCameraFacing = CameraFacing.FRONT
+    private var cameraOn = false
+
     actual fun joinMeeting(
         realTimeListener: RealTimeEventListener,
         onActiveSpeakersChanged: (Set<String>) -> Unit,
@@ -134,10 +140,10 @@ actual class ChimeSDK(
         onRemoteTileAdded: (Int) -> Unit,
         onRemoteTileRemoved: () -> Unit
     ) {
-        val realTimeObserver = RealTimeObserverImpl(realTimeListener)
+        realTimeObserver = RealTimeObserverImpl(realTimeListener)
         meetingSession.audioVideo.addRealtimeObserver(realTimeObserver)
 
-        val deviceObserver = DeviceObserver(
+        deviceObserver = DeviceObserverImpl(
             meetingSession = meetingSession,
             realTimeEventListener = realTimeListener
         )
@@ -147,15 +153,16 @@ actual class ChimeSDK(
             .firstOrNull { it.label == selectedAudioInputDevice }
             ?.let(deviceObserver::selectAudioDevice)
 
-        videoTileObserver = VideoTileManager(
+        videoTileObserver = VideoTileObserverImpl(
+            meetingSession = meetingSession,
             onLocalTileAdded = onLocalTileAdded,
             onLocalTileRemoved = onLocalTileRemoved,
             onRemoteTileAdded = onRemoteTileAdded,
             onRemoteTileRemoved = onRemoteTileRemoved
         )
-        meetingSession.audioVideo.addVideoTileObserver(videoTileObserver!!)
+        meetingSession.audioVideo.addVideoTileObserver(videoTileObserver)
 
-        val audioVideoObserver = AudioVideoObserverImpl(
+        audioVideoObserver = AudioVideoObserverImpl(
             meetingSession = meetingSession,
             onConnectionStatusChanged = onConnectionStatusChanged,
             onRemoteVideoAvailable = onRemoteVideoAvailable,
@@ -166,11 +173,13 @@ actual class ChimeSDK(
         )
         meetingSession.audioVideo.addAudioVideoObserver(audioVideoObserver)
 
-        val activeSpeakerObserver = ActiveSpeakerObserver(onActiveSpeakersChanged)
+        activeSpeakerObserver = ActiveSpeakerObserverImpl(onActiveSpeakersChanged)
         meetingSession.audioVideo.addActiveSpeakerObserver(
             observer = activeSpeakerObserver,
             policy = DefaultActiveSpeakerPolicy()
         )
+
+        dataMessageObserver = DataMessageObserverImpl(meetingSession)
 
         try {
             meetingSession.audioVideo.start()
@@ -190,6 +199,13 @@ actual class ChimeSDK(
                 cameraCaptureSource = null
             }
 
+            meetingSession.audioVideo.removeRealtimeObserver(realTimeObserver)
+            meetingSession.audioVideo.removeDeviceChangeObserver(deviceObserver)
+            meetingSession.audioVideo.removeVideoTileObserver(videoTileObserver)
+            meetingSession.audioVideo.removeAudioVideoObserver(audioVideoObserver)
+            meetingSession.audioVideo.removeActiveSpeakerObserver(activeSpeakerObserver)
+            dataMessageObserver.clearListeners()
+
             meetingSession.audioVideo.stopRemoteVideo()
             meetingSession.audioVideo.realtimeLocalMute()
             meetingSession.audioVideo.stop()
@@ -197,7 +213,7 @@ actual class ChimeSDK(
             e.printStackTrace()
         }
 
-        videoTileObserver?.clearAll()
+        videoTileObserver.clearAll()
     }
 
     actual fun startLocalVideo() {
@@ -240,12 +256,12 @@ actual class ChimeSDK(
     @Composable
     actual fun LocalVideoView(modifier: Modifier, cameraFacing: CameraFacing, isOnTop: Boolean) =
         VideoTileView(
-            tileId = videoTileObserver?.localTileId,
+            tileId = videoTileObserver.localTileId,
             modifier = modifier,
             cameraFacing = cameraFacing,
             isOnTop = isOnTop,
             meetingSession = meetingSession,
-            videoTileManager = videoTileObserver!!
+            videoTileObserverImpl = videoTileObserver
         )
 
     @Composable
@@ -254,7 +270,7 @@ actual class ChimeSDK(
         modifier = modifier,
         isOnTop = isOnTop,
         meetingSession = meetingSession,
-        videoTileManager = videoTileObserver!!
+        videoTileObserverImpl = videoTileObserver
     )
 
     actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) =
@@ -291,11 +307,7 @@ actual class ChimeSDK(
     }
 
     actual fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit) =
-        meetingSession.audioVideo.addRealtimeDataMessageObserver(
-            topic = topic,
-            observer = DataMessageObserverImpl(listener)
-        )
+        dataMessageObserver.addListener(topic, listener)
 
-    actual fun unsubscribeFromTopic(topic: String) =
-        meetingSession.audioVideo.removeRealtimeDataMessageObserverFromTopic(topic)
+    actual fun unsubscribeFromTopic(topic: String) = dataMessageObserver.removeListener(topic)
 }

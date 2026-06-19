@@ -9,8 +9,8 @@ import platform.darwin.NSObject
 private const val SPEAKING_THRESHOLD = 0.05
 
 @OptIn(ExperimentalForeignApi::class)
-class ActiveSpeakerObserver(val onActiveSpeakersChanged: (Set<String>) -> Unit) :
-    NSObject(), ActiveSpeakerObserverProtocol {
+class ActiveSpeakerObserverImpl(val onActiveSpeakersChanged: (Set<String>) -> Unit) : NSObject(),
+    ActiveSpeakerObserverProtocol {
     init {
         val _this: ActiveSpeakerObserverProtocol = this
 

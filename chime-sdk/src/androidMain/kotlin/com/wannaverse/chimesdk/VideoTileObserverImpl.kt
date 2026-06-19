@@ -2,8 +2,10 @@ package com.wannaverse.chimesdk
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileState
+import com.amazonaws.services.chime.sdk.meetings.session.MeetingSession
 
-class VideoTileManager(
+class VideoTileObserverImpl(
+    private val meetingSession: MeetingSession,
     private val onLocalTileAdded: (Int) -> Unit,
     private val onLocalTileRemoved: () -> Unit,
     private val onRemoteTileAdded: (Int) -> Unit,
@@ -14,8 +16,6 @@ class VideoTileManager(
     }
 
     var localTileId: Int? = null
-        private set
-    var remoteTileId: Int? = null
         private set
 
     private fun logTileInfo(event: String, tileState: VideoTileState) {
@@ -30,7 +30,6 @@ class VideoTileManager(
             onLocalTileAdded(tileState.tileId)
         }
         else {
-            remoteTileId = tileState.tileId
             onRemoteTileAdded(tileState.tileId)
         }
     }
@@ -43,7 +42,6 @@ class VideoTileManager(
             onLocalTileRemoved()
         }
         else {
-            remoteTileId = null
             onRemoteTileRemoved()
         }
     }
@@ -80,10 +78,6 @@ class VideoTileManager(
 
     private val boundViews = mutableMapOf<Int, Any>()
 
-    fun isLocalTile(tileId: Int?): Boolean = tileId != null && tileId == localTileId
-
-    fun isRemoteTile(tileId: Int?): Boolean = tileId != null && tileId == remoteTileId
-
     fun updateBoundView(tileId: Int, view: Any) = boundViews.set(tileId, view)
 
     fun isAlreadyBound(tileId: Int, view: Any): Boolean = boundViews[tileId] === view
@@ -96,7 +90,7 @@ class VideoTileManager(
         boundViews.forEach { (tileId, _) ->
             try {
                 println("VIDEO_TILE_VIEW | clearAll | Unbinding tile $tileId")
-//                meetingSession?.audioVideo?.unbindVideoView(tileId)
+                meetingSession.audioVideo.unbindVideoView(tileId)
             } catch (e: Exception) {
                 println("VIDEO_TILE_VIEW | clearAll | Failed to unbind tile $tileId: ${e.message}")
             }

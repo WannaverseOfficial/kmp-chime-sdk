@@ -3,11 +3,9 @@ package com.wannaverse.chimesdk
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AttendeeInfo
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerdetector.ActiveSpeakerObserver
 
-class ActiveSpeakerObserver(val onActiveSpeakersChanged: (Set<String>) -> Unit) : ActiveSpeakerObserver {
-    companion object Companion {
-        private const val SPEAKING_THRESHOLD = 0.05
-    }
+private const val SPEAKING_THRESHOLD = 0.05
 
+class ActiveSpeakerObserverImpl(val onActiveSpeakersChanged: (Set<String>) -> Unit) : ActiveSpeakerObserver {
     override val scoreCallbackIntervalMs: Int = 500
 
     override fun onActiveSpeakerDetected(attendeeInfo: Array<AttendeeInfo>) {}

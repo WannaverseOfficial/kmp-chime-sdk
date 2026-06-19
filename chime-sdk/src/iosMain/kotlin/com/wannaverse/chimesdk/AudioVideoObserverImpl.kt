@@ -26,7 +26,7 @@ class AudioVideoObserverImpl(
         val _this: AudioVideoObserverProtocol = this
 
         ProtocolDescriptor(
-            candidates = listOf("AudioVideoObserver", "_TtP14AmazonChimeSDK22AudioVideoObserver_")
+            candidates = listOf("AudioVideoObserver", "_TtP14AmazonChimeSDK18AudioVideoObserver_")
         ).forceRegisterProtocol(this)
     }
 

@@ -11,7 +11,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
-class DeviceObserver(
+class DeviceObserverImpl(
     private val meetingSession: DefaultMeetingSession,
     private val realTimeEventListener: RealTimeEventListener
 ) : NSObject(), DeviceChangeObserverProtocol {

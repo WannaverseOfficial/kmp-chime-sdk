@@ -5,7 +5,7 @@ import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.session.DefaultMeetingSession
 
-class DeviceObserver(
+class DeviceObserverImpl(
     private val meetingSession: DefaultMeetingSession,
     private val realTimeEventListener: RealTimeEventListener
 ) : DeviceChangeObserver {
@@ -39,9 +39,5 @@ class DeviceObserver(
     fun selectAudioDevice(device: MediaDevice) {
         currentSelectedDevice = device
         meetingSession.audioVideo.chooseAudioDevice(device)
-    }
-
-    fun clearCurrentDevice() {
-        currentSelectedDevice = null
     }
 }

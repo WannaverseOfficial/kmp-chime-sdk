@@ -9,7 +9,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoRenderView
 import com.amazonaws.services.chime.sdk.meetings.session.DefaultMeetingSession
 import com.wannaverse.chimesdk.CameraFacing
-import com.wannaverse.chimesdk.VideoTileManager
+import com.wannaverse.chimesdk.VideoTileObserverImpl
 
 @Composable
 fun VideoTileView(
@@ -18,7 +18,7 @@ fun VideoTileView(
     cameraFacing: CameraFacing? = null,
     isOnTop: Boolean,
     meetingSession: DefaultMeetingSession,
-    videoTileManager: VideoTileManager
+    videoTileObserverImpl: VideoTileObserverImpl
 ) {
     val context = LocalContext.current
     if (tileId == null) return
@@ -29,7 +29,7 @@ fun VideoTileView(
         onDispose {
             try {
                 meetingSession.audioVideo.unbindVideoView(tileId)
-                videoTileManager.clearBoundView(tileId)
+                videoTileObserverImpl.clearBoundView(tileId)
             } catch (_: Exception) {}
         }
     }
@@ -44,15 +44,15 @@ fun VideoTileView(
                 setZOrderMediaOverlay(isOnTop)
                 this.mirror = mirror
                 meetingSession.audioVideo.bindVideoView(this, tileId)
-                videoTileManager.updateBoundView(tileId, this)
+                videoTileObserverImpl.updateBoundView(tileId, this)
             }
         },
         update = { view ->
             view.mirror = mirror
             view.setZOrderMediaOverlay(isOnTop)
-            if (!videoTileManager.isAlreadyBound(tileId, view)) {
+            if (!videoTileObserverImpl.isAlreadyBound(tileId, view)) {
                 meetingSession.audioVideo.bindVideoView(view, tileId)
-                videoTileManager.updateBoundView(tileId, view)
+                videoTileObserverImpl.updateBoundView(tileId, view)
             }
         },
         modifier = modifier
