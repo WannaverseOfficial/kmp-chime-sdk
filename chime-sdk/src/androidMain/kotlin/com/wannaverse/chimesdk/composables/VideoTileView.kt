@@ -7,27 +7,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoRenderView
+import com.amazonaws.services.chime.sdk.meetings.session.DefaultMeetingSession
 import com.wannaverse.chimesdk.CameraFacing
-import com.wannaverse.chimesdk.VideoTileManager
-import com.wannaverse.chimesdk.meetingSession
+import com.wannaverse.chimesdk.VideoTileObserverImpl
 
 @Composable
 fun VideoTileView(
-    tileId: Int?,
+    tileId: Int,
     modifier: Modifier,
     cameraFacing: CameraFacing? = null,
-    isOnTop: Boolean
+    isOnTop: Boolean,
+    meetingSession: DefaultMeetingSession,
+    videoTileObserverImpl: VideoTileObserverImpl
 ) {
     val context = LocalContext.current
-    if (tileId == null) return
 
     val mirror = cameraFacing == CameraFacing.FRONT
 
     DisposableEffect(tileId) {
         onDispose {
             try {
-                meetingSession?.audioVideo?.unbindVideoView(tileId)
-                VideoTileManager.clearBoundView(tileId)
+                meetingSession.audioVideo.unbindVideoView(tileId)
+                videoTileObserverImpl.clearBoundView(tileId)
             } catch (_: Exception) {}
         }
     }
@@ -41,16 +42,16 @@ fun VideoTileView(
                 )
                 setZOrderMediaOverlay(isOnTop)
                 this.mirror = mirror
-                meetingSession?.audioVideo?.bindVideoView(this, tileId)
-                VideoTileManager.updateBoundView(tileId, this)
+                meetingSession.audioVideo.bindVideoView(this, tileId)
+                videoTileObserverImpl.updateBoundView(tileId, this)
             }
         },
         update = { view ->
             view.mirror = mirror
             view.setZOrderMediaOverlay(isOnTop)
-            if (!VideoTileManager.isAlreadyBound(tileId, view)) {
-                meetingSession?.audioVideo?.bindVideoView(view, tileId)
-                VideoTileManager.updateBoundView(tileId, view)
+            if (!videoTileObserverImpl.isAlreadyBound(tileId, view)) {
+                meetingSession.audioVideo.bindVideoView(view, tileId)
+                videoTileObserverImpl.updateBoundView(tileId, view)
             }
         },
         modifier = modifier

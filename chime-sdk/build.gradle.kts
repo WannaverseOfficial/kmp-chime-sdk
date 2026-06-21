@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.wannaverse"
-version = "0.3.1"
+version = "0.4.0"
 
 kotlin {
     androidTarget {
@@ -39,19 +39,6 @@ kotlin {
     val simSlice = "ios-arm64_x86_64-simulator"
     val devSlice = "ios-arm64"
 
-    iosX64 {
-        compilations["main"].cinterops {
-            val AmazonChimeSDK by creating {
-                defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
-                packageName("cocoapods.AmazonChimeSDK")
-                compilerOpts(
-                    "-fmodules",
-                    "-F", "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$simSlice",
-                    "-F", "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$simSlice"
-                )
-            }
-        }
-    }
     iosArm64 {
         compilations["main"].cinterops {
             val AmazonChimeSDK by creating {
