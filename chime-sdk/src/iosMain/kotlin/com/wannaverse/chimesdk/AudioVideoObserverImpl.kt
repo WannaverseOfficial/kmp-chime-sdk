@@ -41,6 +41,8 @@ class AudioVideoObserverImpl(
 
     override fun audioSessionDidStartWithReconnecting(reconnecting: Boolean) {
         onConnectionStatusChanged(ConnectionStatus.CONNECTED)
+
+        if (!reconnecting && isJoiningOnMute) meetingSession.audioVideo().realtimeLocalMute()
     }
 
     override fun audioSessionDidDrop() {

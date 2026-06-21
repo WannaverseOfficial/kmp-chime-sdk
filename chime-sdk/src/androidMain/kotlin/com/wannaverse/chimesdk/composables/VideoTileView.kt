@@ -13,7 +13,7 @@ import com.wannaverse.chimesdk.VideoTileObserverImpl
 
 @Composable
 fun VideoTileView(
-    tileId: Int?,
+    tileId: Int,
     modifier: Modifier,
     cameraFacing: CameraFacing? = null,
     isOnTop: Boolean,
@@ -21,7 +21,6 @@ fun VideoTileView(
     videoTileObserverImpl: VideoTileObserverImpl
 ) {
     val context = LocalContext.current
-    if (tileId == null) return
 
     val mirror = cameraFacing == CameraFacing.FRONT
 

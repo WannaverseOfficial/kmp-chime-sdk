@@ -256,7 +256,7 @@ actual class ChimeSDK(
     @Composable
     actual fun LocalVideoView(modifier: Modifier, cameraFacing: CameraFacing, isOnTop: Boolean) =
         VideoTileView(
-            tileId = videoTileObserver.localTileId,
+            tileId = videoTileObserver.localTileId!!,
             modifier = modifier,
             cameraFacing = cameraFacing,
             isOnTop = isOnTop,
