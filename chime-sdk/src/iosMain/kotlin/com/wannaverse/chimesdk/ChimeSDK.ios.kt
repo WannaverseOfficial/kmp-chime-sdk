@@ -3,12 +3,17 @@
 package com.wannaverse.chimesdk
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
 import cocoapods.AmazonChimeSDK.ConsoleLogger
 import cocoapods.AmazonChimeSDK.DefaultActiveSpeakerPolicy
 import cocoapods.AmazonChimeSDK.DefaultMeetingSession
 import cocoapods.AmazonChimeSDK.DefaultVideoRenderView
+import cocoapods.AmazonChimeSDK.DefaultVideoTile
 import cocoapods.AmazonChimeSDK.LogLevelINFO
 import cocoapods.AmazonChimeSDK.MediaDevice
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBluetooth
@@ -18,8 +23,10 @@ import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioWiredHeadset
 import cocoapods.AmazonChimeSDK.MeetingSessionConfiguration
 import cocoapods.AmazonChimeSDK.MeetingSessionCredentials
 import cocoapods.AmazonChimeSDK.MeetingSessionURLs
+import cocoapods.AmazonChimeSDK.video_client_status_tVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValue
+import kotlinx.cinterop.copy
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryOptionAllowBluetoothA2DP
 import platform.AVFAudio.AVAudioSessionCategoryOptionAllowBluetoothHFP
@@ -32,6 +39,7 @@ import platform.AVFoundation.requestAccessForMediaType
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSOperationQueue
 import platform.UIKit.UIView
+import platform.VideoToolbox.kVTVideoEncoderListOption_IncludeStandardDefinitionDVEncoders
 import platform.darwin.NSObject
 
 private val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
@@ -217,21 +225,25 @@ actual class ChimeSDK(
         meetingSession.audioVideo().stopLocalVideo()
     }
 
-    internal class LocalVideoContainerView(private val localRenderView: DefaultVideoRenderView) :
-        UIView(frame = cValue<CGRect>()) {
-        override fun layoutSubviews() {
-            super.layoutSubviews()
-            localRenderView.setFrame(bounds)
-        }
-    }
 
     @Composable
-    actual fun LocalVideoView(modifier: Modifier, cameraFacing: CameraFacing, isOnTop: Boolean) =
+    actual fun LocalVideoView(cameraFacing: CameraFacing, isOnTop: Boolean, modifier: Modifier) {
+        val mirror = remember(cameraFacing) { cameraFacing == CameraFacing.FRONT }
+
         UIKitView(
-            factory = { videoTileObserver.localVideoContainer },
+            factory = {
+                videoTileObserver.localRenderView.apply {
+                    setMirror(mirror)
+//                    setFrame(bounds)
+//                    addSubview(this)
+                }
+            },
             modifier = modifier,
-            update = { videoTileObserver.localRenderView.setFrame(it.bounds) }
+            update = {
+                it.setMirror(mirror)
+            }
         )
+    }
 
     internal class RemoteVideoContainerView(
         private val videoTileObserver: VideoTileObserverImpl,
@@ -252,7 +264,7 @@ actual class ChimeSDK(
     }
 
     @Composable
-    actual fun RemoteVideoView(modifier: Modifier, tileId: Int, isOnTop: Boolean) = UIKitView(
+    actual fun RemoteVideoView(tileId: Int, isOnTop: Boolean, modifier: Modifier) = UIKitView(
         factory = { RemoteVideoContainerView(videoTileObserver, tileId) },
         modifier = modifier,
         update = RemoteVideoContainerView::setNeedsLayout

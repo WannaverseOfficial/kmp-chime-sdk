@@ -4,11 +4,9 @@ import cocoapods.AmazonChimeSDK.DefaultMeetingSession
 import cocoapods.AmazonChimeSDK.DefaultVideoRenderView
 import cocoapods.AmazonChimeSDK.VideoTileObserverProtocol
 import cocoapods.AmazonChimeSDK.VideoTileState
-import com.wannaverse.chimesdk.ChimeSDK.LocalVideoContainerView
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.UIKit.UIView
 import platform.darwin.NSObject
-import kotlin.collections.get
 import kotlin.collections.set
 
 @OptIn(ExperimentalForeignApi::class)
@@ -30,8 +28,7 @@ class VideoTileObserverImpl(
     var localTileId: Long? = null
         private set
 
-    val localRenderView: DefaultVideoRenderView = DefaultVideoRenderView().also { it.setMirror(true) }
-    internal val localVideoContainer: LocalVideoContainerView = LocalVideoContainerView(localRenderView).also { it.addSubview(localRenderView) }
+    internal val localRenderView: DefaultVideoRenderView = DefaultVideoRenderView()
 
     private val attendeeTileMap: MutableMap<String, Long> = mutableMapOf()
     private val remoteTiles: MutableMap<Long, DefaultVideoRenderView> = mutableMapOf()
@@ -101,11 +98,11 @@ class VideoTileObserverImpl(
 
     fun getRemoteView(tileId: Int): UIView? = remoteTiles[tileId.toLong()]
 
-    fun rebindLocalView() {
-        val tileId = localTileId ?: return
-        localRenderView.setFrame(localVideoContainer.bounds)
-        meetingSession.audioVideo().bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
-    }
+//    fun rebindLocalView() {
+//        val tileId = localTileId ?: return
+//        localRenderView.setFrame(localVideoContainer.bounds)
+//        meetingSession.audioVideo().bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
+//    }
 
     fun rebindRemoteView(tileId: Int) {
         val renderView = remoteTiles[tileId.toLong()] ?: return
