@@ -3,12 +3,12 @@
 package com.wannaverse.chimesdk
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
 import cocoapods.AmazonChimeSDK.ConsoleLogger
 import cocoapods.AmazonChimeSDK.DefaultActiveSpeakerPolicy
 import cocoapods.AmazonChimeSDK.DefaultMeetingSession
-import cocoapods.AmazonChimeSDK.DefaultVideoRenderView
 import cocoapods.AmazonChimeSDK.LogLevelINFO
 import cocoapods.AmazonChimeSDK.MediaDevice
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBluetooth
@@ -19,7 +19,6 @@ import cocoapods.AmazonChimeSDK.MeetingSessionConfiguration
 import cocoapods.AmazonChimeSDK.MeetingSessionCredentials
 import cocoapods.AmazonChimeSDK.MeetingSessionURLs
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.cValue
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryOptionAllowBluetoothA2DP
 import platform.AVFAudio.AVAudioSessionCategoryOptionAllowBluetoothHFP
@@ -29,9 +28,8 @@ import platform.AVFAudio.setActive
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.requestAccessForMediaType
-import platform.CoreGraphics.CGRect
 import platform.Foundation.NSOperationQueue
-import platform.UIKit.UIView
+import platform.UIKit.UIViewContentMode
 import platform.darwin.NSObject
 
 private val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
@@ -217,45 +215,37 @@ actual class ChimeSDK(
         meetingSession.audioVideo().stopLocalVideo()
     }
 
-    internal class LocalVideoContainerView(private val localRenderView: DefaultVideoRenderView) :
-        UIView(frame = cValue<CGRect>()) {
-        override fun layoutSubviews() {
-            super.layoutSubviews()
-            localRenderView.setFrame(bounds)
-        }
-    }
-
     @Composable
-    actual fun LocalVideoView(modifier: Modifier, cameraFacing: CameraFacing, isOnTop: Boolean) =
+    actual fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier) {
+        val mirror = remember(cameraFacing) { cameraFacing == CameraFacing.FRONT }
+
         UIKitView(
-            factory = { videoTileObserver.localVideoContainer },
-            modifier = modifier,
-            update = { videoTileObserver.localRenderView.setFrame(it.bounds) }
-        )
-
-    internal class RemoteVideoContainerView(
-        private val videoTileObserver: VideoTileObserverImpl,
-        private val tileId: Int
-    ) : UIView(frame = cValue<CGRect>()) {
-        override fun layoutSubviews() {
-            super.layoutSubviews()
-            val actual = videoTileObserver.getRemoteView(tileId) ?: return
-            if (actual.superview != this) {
-                subviews.forEach { subview ->
-                    (subview as? UIView)?.removeFromSuperview()
+            factory = {
+                videoTileObserver.localRenderView.apply {
+                    contentMode = UIViewContentMode.UIViewContentModeScaleAspectFill
+                    layer.masksToBounds = true
+                    setMirror(mirror)
                 }
-                addSubview(actual)
-                videoTileObserver.rebindRemoteView(tileId)
+            },
+            modifier = modifier,
+            update = {
+                it.setMirror(mirror)
             }
-            actual.setFrame(bounds)
-        }
+        )
     }
 
     @Composable
-    actual fun RemoteVideoView(modifier: Modifier, tileId: Int, isOnTop: Boolean) = UIKitView(
-        factory = { RemoteVideoContainerView(videoTileObserver, tileId) },
+    actual fun RemoteVideoView(tileId: Int, modifier: Modifier) = UIKitView(
+        factory = {
+            (videoTileObserver.getRemoteView(tileId)
+                ?: throw IllegalArgumentException("Remote view for tile $tileId not found")
+            ).apply {
+                contentMode = UIViewContentMode.UIViewContentModeScaleAspectFill
+                layer.masksToBounds = true
+            }
+        },
         modifier = modifier,
-        update = RemoteVideoContainerView::setNeedsLayout
+        update = {}
     )
 
     actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) {

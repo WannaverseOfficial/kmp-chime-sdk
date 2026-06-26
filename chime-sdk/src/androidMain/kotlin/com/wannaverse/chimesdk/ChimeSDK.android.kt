@@ -3,7 +3,9 @@ package com.wannaverse.chimesdk
 import android.content.Context
 import android.hardware.camera2.CameraManager
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultEventAnalyticsController
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultMeetingStatsCollector
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerpolicy.DefaultActiveSpeakerPolicy
@@ -20,7 +22,6 @@ import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionCredentia
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionURLs
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.ConsoleLogger
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
-import com.wannaverse.chimesdk.composables.VideoTileView
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class ChimeSDK(
@@ -71,7 +72,12 @@ actual class ChimeSDK(
             val eglCoreFactory = DefaultEglCoreFactory()
 
             val meetingSession =
-                DefaultMeetingSession(meetingSessionConfiguration, logger, appContext, eglCoreFactory)
+                DefaultMeetingSession(
+                    meetingSessionConfiguration,
+                    logger,
+                    appContext,
+                    eglCoreFactory
+                )
 
             return ChimeSDK(meetingSession, eventAnalyticsController, eglCoreFactory)
         }
@@ -191,29 +197,23 @@ actual class ChimeSDK(
     }
 
     actual fun leaveMeeting() {
-        try {
-            if (cameraOn || cameraCaptureSource != null) {
-                cameraCaptureSource?.stop()
-                meetingSession.audioVideo.stopLocalVideo()
-                cameraOn = false
-                cameraCaptureSource = null
-            }
-
-            meetingSession.audioVideo.removeRealtimeObserver(realTimeObserver)
-            meetingSession.audioVideo.removeDeviceChangeObserver(deviceObserver)
-            meetingSession.audioVideo.removeVideoTileObserver(videoTileObserver)
-            meetingSession.audioVideo.removeAudioVideoObserver(audioVideoObserver)
-            meetingSession.audioVideo.removeActiveSpeakerObserver(activeSpeakerObserver)
-            dataMessageObserver.clearListeners()
-
-            meetingSession.audioVideo.stopRemoteVideo()
-            meetingSession.audioVideo.realtimeLocalMute()
-            meetingSession.audioVideo.stop()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        if (cameraOn || cameraCaptureSource != null) {
+            cameraCaptureSource?.stop()
+            meetingSession.audioVideo.stopLocalVideo()
+            cameraOn = false
+            cameraCaptureSource = null
         }
 
-        videoTileObserver.clearAll()
+        meetingSession.audioVideo.removeRealtimeObserver(realTimeObserver)
+        meetingSession.audioVideo.removeDeviceChangeObserver(deviceObserver)
+        meetingSession.audioVideo.removeVideoTileObserver(videoTileObserver)
+        meetingSession.audioVideo.removeAudioVideoObserver(audioVideoObserver)
+        meetingSession.audioVideo.removeActiveSpeakerObserver(activeSpeakerObserver)
+        dataMessageObserver.clearListeners()
+
+        meetingSession.audioVideo.stopRemoteVideo()
+        meetingSession.audioVideo.realtimeLocalMute()
+        meetingSession.audioVideo.stop()
     }
 
     actual fun startLocalVideo() {
@@ -254,23 +254,28 @@ actual class ChimeSDK(
     }
 
     @Composable
-    actual fun LocalVideoView(modifier: Modifier, cameraFacing: CameraFacing, isOnTop: Boolean) =
-        VideoTileView(
-            tileId = videoTileObserver.localTileId!!,
+    actual fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier) {
+        val mirror = remember(cameraFacing) { cameraFacing == CameraFacing.FRONT }
+
+        AndroidView(
+            factory = {
+                videoTileObserver.localRenderView.apply { this.mirror = mirror }
+            },
             modifier = modifier,
-            cameraFacing = cameraFacing,
-            isOnTop = isOnTop,
-            meetingSession = meetingSession,
-            videoTileObserverImpl = videoTileObserver
+            update = {
+                it.mirror = mirror
+            }
         )
+    }
 
     @Composable
-    actual fun RemoteVideoView(modifier: Modifier, tileId: Int, isOnTop: Boolean) = VideoTileView(
-        tileId = tileId,
+    actual fun RemoteVideoView(tileId: Int, modifier: Modifier) = AndroidView(
+        factory = {
+            videoTileObserver.getRemoteRenderView(tileId)
+                ?: throw IllegalStateException("Remote view for tile $tileId not found")
+        },
         modifier = modifier,
-        isOnTop = isOnTop,
-        meetingSession = meetingSession,
-        videoTileObserverImpl = videoTileObserver
+        update = {}
     )
 
     actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) =
@@ -283,7 +288,8 @@ actual class ChimeSDK(
         val source = cameraCaptureSource ?: return
 
         val previous = currentCameraFacing
-        currentCameraFacing = if (currentCameraFacing == CameraFacing.FRONT) CameraFacing.BACK else CameraFacing.FRONT
+        currentCameraFacing =
+            if (currentCameraFacing == CameraFacing.FRONT) CameraFacing.BACK else CameraFacing.FRONT
 
         val cm = appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         val devices = MediaDevice.listVideoDevices(cm)
