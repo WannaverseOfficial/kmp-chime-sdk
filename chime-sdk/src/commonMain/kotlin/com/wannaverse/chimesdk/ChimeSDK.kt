@@ -91,11 +91,11 @@ expect class ChimeSDK {
 
     /** Composable that renders the local camera preview. */
     @Composable
-    fun LocalVideoView(cameraFacing: CameraFacing, isOnTop: Boolean, modifier: Modifier = Modifier)
+    fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier = Modifier)
 
     /** Composable that renders a remote participant's video tile. */
     @Composable
-    fun RemoteVideoView(tileId: Int, isOnTop: Boolean, modifier: Modifier = Modifier)
+    fun RemoteVideoView(tileId: Int, modifier: Modifier = Modifier)
 
     /**
      * Broadcasts a real-time data message on [topic].

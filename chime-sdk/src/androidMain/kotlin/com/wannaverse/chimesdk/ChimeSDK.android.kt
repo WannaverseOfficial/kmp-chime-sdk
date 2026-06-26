@@ -254,7 +254,7 @@ actual class ChimeSDK(
     }
 
     @Composable
-    actual fun LocalVideoView(cameraFacing: CameraFacing, isOnTop: Boolean, modifier: Modifier) {
+    actual fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier) {
         val mirror = remember(cameraFacing) { cameraFacing == CameraFacing.FRONT }
 
         AndroidView(
@@ -269,7 +269,7 @@ actual class ChimeSDK(
     }
 
     @Composable
-    actual fun RemoteVideoView(tileId: Int, isOnTop: Boolean, modifier: Modifier) = AndroidView(
+    actual fun RemoteVideoView(tileId: Int, modifier: Modifier) = AndroidView(
         factory = {
             videoTileObserver.getRemoteRenderView(tileId)
                 ?: throw IllegalStateException("Remote view for tile $tileId not found")
