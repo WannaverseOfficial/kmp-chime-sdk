@@ -29,12 +29,12 @@ class VideoTileObserverImpl(
     }
 
     override fun onVideoTileRemoved(tileState: VideoTileState) {
+        meetingSession.audioVideo.unbindVideoView(tileState.tileId)
+
         if (tileState.isLocalTile) {
-            meetingSession.audioVideo.unbindVideoView(tileState.tileId)
             onLocalTileRemoved()
         } else {
-            meetingSession.audioVideo.unbindVideoView(tileState.tileId)
-            remoteRenderView.remove(tileState.tileId)
+            remoteRenderView -= tileState.tileId
             onRemoteTileRemoved()
         }
     }

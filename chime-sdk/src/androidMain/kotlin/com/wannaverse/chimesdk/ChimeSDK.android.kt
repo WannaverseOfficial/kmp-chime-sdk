@@ -262,7 +262,9 @@ actual class ChimeSDK(
                 videoTileObserver.localRenderView.apply { this.mirror = mirror }
             },
             modifier = modifier,
-            update = {}
+            update = {
+                it.mirror = mirror
+            }
         )
     }
 
@@ -270,7 +272,7 @@ actual class ChimeSDK(
     actual fun RemoteVideoView(tileId: Int, isOnTop: Boolean, modifier: Modifier) = AndroidView(
         factory = {
             videoTileObserver.getRemoteRenderView(tileId)
-                ?: throw IllegalStateException("No remote render view found for tile $tileId")
+                ?: throw IllegalStateException("Remote view for tile $tileId not found")
         },
         modifier = modifier,
         update = {}
