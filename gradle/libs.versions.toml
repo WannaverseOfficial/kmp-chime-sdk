@@ -1,26 +1,20 @@
 [versions]
-agp = "8.11.2"
-android-compileSdk = "37"
-android-minSdk = "24"
-android-targetSdk = "37"
-composeMultiplatform = "1.10.3"
-kotlin = "2.3.20"
-
-amazonChimeSdk = "0.25.2"
+kotlin = "2.4.0"
+compose = "1.11.1"
+agp = "9.2.1"
 
 [libraries]
-amazon-chime-sdk = { module = "software.aws.chimesdk:amazon-chime-sdk", version.ref = "amazonChimeSdk" }
-amazon-chime-sdk-media = { module = "software.aws.chimesdk:amazon-chime-sdk-media", version.ref = "amazonChimeSdk" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
 
-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+amazon-chime-sdk = { module = "software.aws.chimesdk:amazon-chime-sdk", version = "0.25.3" }
+amazon-chime-sdk-media = { module = "software.aws.chimesdk:amazon-chime-sdk-media", version = "0.25.2" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
-composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
-composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
-publishing = { id = "com.vanniktech.maven.publish", version = "0.32.0" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
+kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
+publishing = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
