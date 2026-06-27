@@ -14,6 +14,8 @@ group = "com.wannaverse"
 version = "0.4.1"
 
 kotlin {
+    jvmToolchain(21)
+
     android {
         namespace = "com.wannaverse.chimesdk"
         compileSdk = 37
