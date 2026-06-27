@@ -1,11 +1,10 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.multiplatform.library)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dokka)
     alias(libs.plugins.publishing)
     kotlin("native.cocoapods")
@@ -15,12 +14,14 @@ group = "com.wannaverse"
 version = "0.4.1"
 
 kotlin {
-    androidTarget {
+    android {
+        namespace = "com.wannaverse.chimesdk"
+        compileSdk = 37
+        minSdk = 24
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
-        publishLibraryVariants("release")
-        publishLibraryVariantsGroupedByFlavor = true
     }
 
     cocoapods {
@@ -30,7 +31,7 @@ kotlin {
         ios.deploymentTarget = "16.0"
 
         pod("AmazonChimeSDK") {
-            version = "~> 0.25.0"
+            version = "~> 0.27.2"
             linkOnly = true
         }
     }
@@ -41,7 +42,7 @@ kotlin {
 
     iosArm64 {
         compilations["main"].cinterops {
-            val AmazonChimeSDK by creating {
+            val AmazonChimeSDK = create("AmazonChimeSDK") {
                 defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
                 packageName("cocoapods.AmazonChimeSDK")
                 compilerOpts(
@@ -54,7 +55,7 @@ kotlin {
     }
     iosSimulatorArm64 {
         compilations["main"].cinterops {
-            val AmazonChimeSDK by creating {
+            val AmazonChimeSDK = create("AmazonChimeSDK") {
                 defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
                 packageName("cocoapods.AmazonChimeSDK")
                 compilerOpts(
@@ -79,21 +80,8 @@ kotlin {
     }
 }
 
-android {
-    namespace = "com.wannaverse.chimesdk"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
 
     if (!project.hasProperty("skipSigning")) {
         signAllPublications()
@@ -131,12 +119,12 @@ mavenPublishing {
 afterEvaluate {
     tasks.findByName("cinteropAmazonChimeSDKIosSimulatorArm64")
         ?.dependsOn("podBuildAmazonChimeSDKIosSimulator")
-    tasks.findByName("cinteropAmazonChimeSDKIosX64")
-        ?.dependsOn("podBuildAmazonChimeSDKIosSimulator")
     tasks.findByName("cinteropAmazonChimeSDKIosArm64")
         ?.dependsOn("podBuildAmazonChimeSDKIos")
 }
 
-tasks.dokkaHtml {
-    outputDirectory.set(file("${rootDir}/docs"))
+dokka {
+    dokkaPublications.html {
+        outputDirectory.set(file("${rootDir}/docs"))
+    }
 }
