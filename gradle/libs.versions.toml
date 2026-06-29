@@ -6,7 +6,7 @@ android-targetSdk = "37"
 composeMultiplatform = "1.10.3"
 kotlin = "2.3.20"
 
-amazonChimeSdk = "0.25.2"
+amazonChimeSdk = "0.25.3"
 
 [libraries]
 amazon-chime-sdk = { module = "software.aws.chimesdk:amazon-chime-sdk", version.ref = "amazonChimeSdk" }
