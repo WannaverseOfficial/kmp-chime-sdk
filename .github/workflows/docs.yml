@@ -14,17 +14,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'oracle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build documentation
-        run: ./gradlew dokkaHtml --no-configuration-cache
+        run: ./gradlew dokkaGenerateHtml --no-configuration-cache
 
       - name: Push to docs branch
         uses: peaceiris/actions-gh-pages@v3
