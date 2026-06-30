@@ -8,7 +8,7 @@ compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.re
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
 
-amazon-chime-sdk = { module = "software.aws.chimesdk:amazon-chime-sdk", version = "0.25.3" }
+amazon-chime-sdk = { module = "software.aws.chimesdk:amazon-chime-sdk", version = "0.25.4" }
 amazon-chime-sdk-media = { module = "software.aws.chimesdk:amazon-chime-sdk-media", version = "0.25.2" }
 
 [plugins]
