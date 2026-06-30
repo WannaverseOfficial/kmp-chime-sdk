@@ -1,44 +1,41 @@
 <!DOCTYPE html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>[android]VideoTileObserverImpl</title>
     <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
-    <script>var pathToRoot = "../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+        <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
-<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
 <script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer="defer"></script>
-<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
 </head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-            <a class="library-name--link" href="../../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+            <a class="library-name--link" href="../../../index.html" tabindex="1">
                     chime-sdk
             </a>
         <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
@@ -46,11 +43,11 @@
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
         <div class="library-version" id="library-version">
-0.4.0        </div>
+0.4.1        </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active=""
-                        data-filter=":chime-sdk:dokkaHtml/androidMain">android</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true"
+                        data-filter=":chime-sdk/androidMain">android</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
                         data-role="dropdown-toggle"
@@ -59,16 +56,16 @@
                         aria-expanded="false"
                         aria-label="Toggle source sets"
                 ></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":chime-sdk:dokkaHtml/androidMain"
-                                       data-filter=":chime-sdk:dokkaHtml/androidMain"/>
+                                <input type="checkbox" class="checkbox--input" id=":chime-sdk/androidMain"
+                                       data-filter=":chime-sdk/androidMain"/>
                                 <span class="checkbox--icon"></span>
                                 android
                             </label>
@@ -76,7 +73,7 @@
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
                     type="button">Switch theme
             </button>
@@ -84,94 +81,54 @@
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
-                        data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config='{"defaultSize": 280, "minSize": 200, "maxSize": 400}'>
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                    data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     chime-sdk
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageIds="chime-sdk::com.wannaverse.chimesdk/VideoTileObserverImpl///PointingToDeclaration//-529116175">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="chime-sdk::com.wannaverse.chimesdk/VideoTileObserverImpl///PointingToDeclaration//434017976">
   <div class="breadcrumbs"><a href="../../../index.html">chime-sdk</a><span class="delimiter">/</span><a href="../index.html">com.wannaverse.chimesdk</a><span class="delimiter">/</span><span class="current">[android]VideoTileObserverImpl</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Video</span><wbr></wbr><span>Tile</span><wbr></wbr><span>Observer</span><wbr></wbr><span><span>Impl</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">VideoTileObserverImpl</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">meetingSession<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.session/MeetingSession///PointingToDeclaration/">MeetingSession</span><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileObserver///PointingToDeclaration/">VideoTileObserver</span></div></div>    </div>
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">VideoTileObserverImpl</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">meetingSession<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.session/MeetingSession///PointingToDeclaration/">MeetingSession</span><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileObserver///PointingToDeclaration/">VideoTileObserver</span></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
-        <h2 class="">Constructors</h2>
-        <div class="table"><a data-name="-1410873433%2FConstructors%2F-529116175" anchor-label="VideoTileObserverImpl" id="-1410873433%2FConstructors%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-1410873433%2FConstructors%2F434017976" anchor-label="VideoTileObserverImpl" id="-1410873433%2FConstructors%2F434017976" data-filterable-set=":chime-sdk/androidMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-video-tile-observer-impl.html"><span>Video</span><wbr></wbr><span>Tile</span><wbr></wbr><span>Observer</span><wbr></wbr><span><span>Impl</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1410873433%2FConstructors%2F-529116175"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1410873433%2FConstructors%2F434017976"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">meetingSession<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.session/MeetingSession///PointingToDeclaration/">MeetingSession</span><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div data-togglable="TYPE">
-        <h2 class="">Types</h2>
-        <div class="table"><a data-name="-1700575358%2FClasslikes%2F-529116175" anchor-label="Companion" id="-1700575358%2FClasslikes%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1700575358%2FClasslikes%2F-529116175"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div>                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div data-togglable="PROPERTY">
-        <h2 class="">Properties</h2>
-        <div class="table"><a data-name="1193765255%2FProperties%2F-529116175" anchor-label="localTileId" id="1193765255%2FProperties%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="local-tile-id.html"><span>local</span><wbr></wbr><span>Tile</span><wbr></wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1193765255%2FProperties%2F-529116175"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="local-tile-id.html">localTileId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span></div></div>                  </div>
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">meetingSession<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.session/MeetingSession///PointingToDeclaration/">MeetingSession</span><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onLocalTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileAdded<span class="token operator">: </span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span></span><span class="parameter ">onRemoteTileRemoved<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -179,156 +136,105 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="2145057771%2FFunctions%2F-529116175" anchor-label="clearAll" id="2145057771%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1232263042%2FFunctions%2F434017976" anchor-label="getRemoteRenderView" id="1232263042%2FFunctions%2F434017976" data-filterable-set=":chime-sdk/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="clear-all.html"><span>clear</span><wbr></wbr><span><span>All</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2145057771%2FFunctions%2F-529116175"></span>
+                  <div><a href="get-remote-render-view.html"><span>get</span><wbr></wbr><span>Remote</span><wbr></wbr><span>Render</span><wbr></wbr><span><span>View</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1232263042%2FFunctions%2F434017976"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clear-all.html"><span class="token function">clearAll</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-remote-render-view.html"><span class="token function">getRemoteRenderView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl/TextureRenderView///PointingToDeclaration/">TextureRenderView</span><span class="token operator">?</span></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1957549657%2FFunctions%2F-529116175" anchor-label="clearBoundView" id="-1957549657%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="clear-bound-view.html"><span>clear</span><wbr></wbr><span>Bound</span><wbr></wbr><span><span>View</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1957549657%2FFunctions%2F-529116175"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clear-bound-view.html"><span class="token function">clearBoundView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="/&amp;lt;Error class: unknown class&amp;gt;///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span></div></div>                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="1749307923%2FFunctions%2F-529116175" anchor-label="isAlreadyBound" id="1749307923%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="is-already-bound.html"><span>is</span><wbr></wbr><span>Already</span><wbr></wbr><span><span>Bound</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1749307923%2FFunctions%2F-529116175"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="is-already-bound.html"><span class="token function">isAlreadyBound</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">view<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div>                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="667991479%2FFunctions%2F-529116175" anchor-label="onVideoTileAdded" id="667991479%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
+<a data-name="667991479%2FFunctions%2F434017976" anchor-label="onVideoTileAdded" id="667991479%2FFunctions%2F434017976" data-filterable-set=":chime-sdk/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="on-video-tile-added.html"><span>on</span><wbr></wbr><span>Video</span><wbr></wbr><span>Tile</span><wbr></wbr><span><span>Added</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="667991479%2FFunctions%2F-529116175"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="667991479%2FFunctions%2F434017976"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-added.html"><span class="token function">onVideoTileAdded</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-added.html"><span class="token function">onVideoTileAdded</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2039232515%2FFunctions%2F-529116175" anchor-label="onVideoTilePaused" id="-2039232515%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
+<a data-name="-2039232515%2FFunctions%2F434017976" anchor-label="onVideoTilePaused" id="-2039232515%2FFunctions%2F434017976" data-filterable-set=":chime-sdk/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="on-video-tile-paused.html"><span>on</span><wbr></wbr><span>Video</span><wbr></wbr><span>Tile</span><wbr></wbr><span><span>Paused</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2039232515%2FFunctions%2F-529116175"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2039232515%2FFunctions%2F434017976"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-paused.html"><span class="token function">onVideoTilePaused</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-paused.html"><span class="token function">onVideoTilePaused</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2043162601%2FFunctions%2F-529116175" anchor-label="onVideoTileRemoved" id="-2043162601%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
+<a data-name="-2043162601%2FFunctions%2F434017976" anchor-label="onVideoTileRemoved" id="-2043162601%2FFunctions%2F434017976" data-filterable-set=":chime-sdk/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="on-video-tile-removed.html"><span>on</span><wbr></wbr><span>Video</span><wbr></wbr><span>Tile</span><wbr></wbr><span><span>Removed</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2043162601%2FFunctions%2F-529116175"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2043162601%2FFunctions%2F434017976"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-removed.html"><span class="token function">onVideoTileRemoved</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-removed.html"><span class="token function">onVideoTileRemoved</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1418879026%2FFunctions%2F-529116175" anchor-label="onVideoTileResumed" id="-1418879026%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
+<a data-name="-1418879026%2FFunctions%2F434017976" anchor-label="onVideoTileResumed" id="-1418879026%2FFunctions%2F434017976" data-filterable-set=":chime-sdk/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="on-video-tile-resumed.html"><span>on</span><wbr></wbr><span>Video</span><wbr></wbr><span>Tile</span><wbr></wbr><span><span>Resumed</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1418879026%2FFunctions%2F-529116175"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1418879026%2FFunctions%2F434017976"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-resumed.html"><span class="token function">onVideoTileResumed</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-resumed.html"><span class="token function">onVideoTileResumed</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1117353878%2FFunctions%2F-529116175" anchor-label="onVideoTileSizeChanged" id="-1117353878%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
+<a data-name="-1117353878%2FFunctions%2F434017976" anchor-label="onVideoTileSizeChanged" id="-1117353878%2FFunctions%2F434017976" data-filterable-set=":chime-sdk/androidMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="on-video-tile-size-changed.html"><span>on</span><wbr></wbr><span>Video</span><wbr></wbr><span>Tile</span><wbr></wbr><span>Size</span><wbr></wbr><span><span>Changed</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1117353878%2FFunctions%2F-529116175"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1117353878%2FFunctions%2F434017976"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
                   <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-size-changed.html"><span class="token function">onVideoTileSizeChanged</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-614513023%2FFunctions%2F-529116175" anchor-label="updateBoundView" id="-614513023%2FFunctions%2F-529116175" data-filterable-set=":chime-sdk:dokkaHtml/androidMain"></a>
-          <div class="table-row" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="update-bound-view.html"><span>update</span><wbr></wbr><span>Bound</span><wbr></wbr><span><span>View</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-614513023%2FFunctions%2F-529116175"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk:dokkaHtml/androidMain" data-filterable-set=":chime-sdk:dokkaHtml/androidMain" data-active="" data-toggle=":chime-sdk:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="update-bound-view.html"><span class="token function">updateBoundView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">view<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="/&amp;lt;Error class: unknown class&amp;gt;///PointingToDeclaration/">&lt;Error class: unknown class&gt;</span></div></div>                  </div>
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":chime-sdk/androidMain" data-filterable-set=":chime-sdk/androidMain" data-active="" data-toggle=":chime-sdk/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":chime-sdk/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-video-tile-size-changed.html"><span class="token function">onVideoTileSizeChanged</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">tileState<span class="token operator">: </span><span data-unresolved-link="com.amazonaws.services.chime.sdk.meetings.audiovideo.video/VideoTileState///PointingToDeclaration/">VideoTileState</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -339,17 +245,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2026 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
