@@ -31,7 +31,7 @@ actual class ChimeSDK(
     private val eglCoreFactory: DefaultEglCoreFactory
 ) {
     actual companion object {
-        private lateinit var applicationContext: Context
+        internal lateinit var applicationContext: Context
 
         fun initialize(applicationContext: Context) {
             this.applicationContext = applicationContext
