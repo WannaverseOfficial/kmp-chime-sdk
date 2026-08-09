@@ -33,7 +33,7 @@ kotlin {
         ios.deploymentTarget = "16.0"
 
         pod("AmazonChimeSDK") {
-            version = "~> 0.27.2"
+            version = "~> 0.27.3"
             linkOnly = true
         }
     }
