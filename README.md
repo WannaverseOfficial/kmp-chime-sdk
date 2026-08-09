@@ -67,7 +67,7 @@ The iOS implementation is compiled entirely in Kotlin via cinterop. **No Swift f
 
 1. In Xcode: **File → Add Package Dependencies**
 2. Enter `https://github.com/aws/amazon-chime-sdk-ios-spm`
-3. Select version rule `Up to Next Minor` from `0.25.0`
+3. Select version rule `Up to Next Minor` from `0.27.0`
 4. Add **AmazonChimeSDK** and **AmazonChimeSDKMedia** to your app target
 
 #### Option B: CocoaPods
@@ -78,7 +78,7 @@ platform :ios, '16.0'
 use_frameworks!
 
 target 'iosApp' do
-  pod 'AmazonChimeSDK', '~> 0.25.0'
+  pod 'AmazonChimeSDK', '~> 0.27.0'
 end
 ```
 
@@ -116,6 +116,12 @@ val session = ChimeSDK.createSession(
     externalUserId = info.externalUserId,
     joinToken = info.joinToken
 )
+```
+
+The session can then be used to fetch available audio devices, before joining the meeting:
+
+```kotlinkotlin
+val audioDevices = session.getAudioInputDevices()
 ```
 
 ### Joining a meeting
