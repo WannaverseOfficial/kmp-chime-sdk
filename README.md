@@ -30,13 +30,14 @@ kotlin {
 
 ### Android setup
 
-**1. Set the application context** before calling `setContent`. The library needs it to initialise the Chime session:
+**1. Set the application context** before calling `setContent`. The library needs it to initialize the Chime session:
 
 ```kotlin
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        com.wannaverse.chimesdk.appContext = applicationContext
         super.onCreate(savedInstanceState)
+        
+        ChimeSDK.initialize()
         // ...
     }
 }
@@ -66,7 +67,7 @@ The iOS implementation is compiled entirely in Kotlin via cinterop. **No Swift f
 
 1. In Xcode: **File → Add Package Dependencies**
 2. Enter `https://github.com/aws/amazon-chime-sdk-ios-spm`
-3. Select version rule `Up to Next Minor` from `0.25.0`
+3. Select version rule `Up to Next Minor` from `0.27.0`
 4. Add **AmazonChimeSDK** and **AmazonChimeSDKMedia** to your app target
 
 #### Option B: CocoaPods
@@ -77,7 +78,7 @@ platform :ios, '16.0'
 use_frameworks!
 
 target 'iosApp' do
-  pod 'AmazonChimeSDK', '~> 0.25.0'
+  pod 'AmazonChimeSDK', '~> 0.27.0'
 end
 ```
 
@@ -98,49 +99,66 @@ Both options require these keys in `Info.plist`:
 
 ## Usage
 
-### Joining a meeting
+### Create a session
 
 Pass credentials from your backend (obtained via the AWS `CreateMeeting` + `CreateAttendee` APIs):
 
 ```kotlin
-joinMeeting(
+val session = ChimeSDK.createSession(
     externalMeetingId = info.externalMeetingId,
-    meetingId         = info.meetingId,
-    audioHostURL      = info.audioHostURL,
-    audioFallbackURL  = info.audioFallbackURL,
-    turnControlURL    = info.turnControlURL,
-    signalingURL      = info.signalingURL,
-    ingestionURL      = info.ingestionURL,
-    attendeeId        = info.attendeeId,
-    externalUserId    = info.externalUserId,
-    joinToken         = info.joinToken,
+    meetingId = info.meetingId,
+    audioHostURL = info.audioHostURL,
+    audioFallbackURL = info.audioFallbackURL,
+    turnControlURL = info.turnControlURL,
+    signalingURL = info.signalingURL,
+    ingestionURL = info.ingestionURL,
+    attendeeId = info.attendeeId,
+    externalUserId = info.externalUserId,
+    joinToken = info.joinToken
+)
+```
 
+The session can then be used to fetch available audio devices, before joining the meeting:
+
+```kotlinkotlin
+val audioDevices = session.getAudioInputDevices()
+```
+
+### Joining a meeting
+
+```kotlin
+session.joinMeeting(
     realTimeListener = object : RealTimeEventListener {
-        override fun onAttendeesJoined(attendeeIds: List<String>)  { /* ... */ }
-        override fun onAttendeesLeft(attendeeIds: List<String>)    { /* ... */ }
+        override fun onAttendeesJoined(attendeeIds: List<String>) { /* ... */ }
+        override fun onAttendeesLeft(attendeeIds: List<String>) { /* ... */ }
         override fun onAttendeesDropped(attendeeIds: List<String>) { /* ... */ }
-        override fun onAttendeesMuted(attendeeIds: List<String>)   { /* ... */ }
+        override fun onAttendeesMuted(attendeeIds: List<String>) { /* ... */ }
         override fun onAttendeesUnmuted(attendeeIds: List<String>) { /* ... */ }
         override fun onSignalStrengthChanged(attendeeId: String, externalAttendeeId: String, signal: Int) { /* ... */ }
-        override fun onVolumeChanged(attendeeId: String, externalAttendeeId: String, volume: Int)         { /* ... */ }
-        override fun onAudioDevicesUpdated(devices: List<AudioDevice>, selected: AudioDevice?)            { /* ... */ }
+        override fun onVolumeChanged(attendeeId: String, externalAttendeeId: String, volume: Int) { /* ... */ }
+        override fun onAudioDevicesUpdated(devices: List<AudioDevice>, selected: AudioDevice?) { /* ... */ }
     },
-
-    onActiveSpeakersChanged    = { speakers -> /* highlight active speaker */ },
-    onConnectionStatusChanged  = { status ->
+    
+    onActiveSpeakersChanged = { speakers -> /* highlight active speaker */ },
+    onConnectionStatusChanged = { status ->
         if (status == ConnectionStatus.CONNECTED) { /* update UI */ }
     },
-    onRemoteVideoAvailable     = { isAvailable, count -> /* show/hide remote grid */ },
-    onSessionError             = { message, isRecoverable -> /* handle error */ },
-    onLocalAttendeeIdAvailable = { id -> /* store local attendee ID */ },
-    isJoiningOnMute            = false
+    onRemoteVideoAvailable = { isAvailable, count -> /* show/hide remote grid */ },
+    onCameraSendAvailable = { isAvailable -> /* start local video */ },
+    onSessionError = { message, isRecoverable -> /* handle error */ },
+    selectedAudioDevice = audioDevice.label,
+    isJoiningOnMute = false,
+    onLocalTileAdded = { tileId -> /* show local camera preview */ },
+    onLocalTileRemoved = { tileId -> /* hide local camera preview */ },
+    onRemoteTileAdded = { tileId -> /* show remote video */ },
+    onRemoteTileRemoved = { tileId -> /* hide remote video */ }
 )
 ```
 
 ### Leaving
 
 ```kotlin
-leaveMeeting()   // ends the session and releases all resources
+session.leaveMeeting()   // ends the session and releases all resources
 ```
 
 ---
@@ -170,19 +188,19 @@ fun MeetingScreen() {
 }
 ```
 
-Call `startLocalVideo()` after joining to begin sending camera frames.
+Call `session.startLocalVideo()` after joining to begin sending camera frames.
 
 ---
 
 ### Meeting controls
 
 ```kotlin
-startLocalVideo()              // start sending camera frames
-stopLocalVideo()               // stop camera
-setMute(true)                  // mute microphone
-switchCamera()                 // toggle front / back camera
-switchAudioDevice(device.id)   // route audio to a specific output
-leaveMeeting()                 // end session and release all resources
+session.startLocalVideo()              // start sending camera frames
+session.stopLocalVideo()               // stop camera
+session.setMute(true)                  // mute microphone
+session.switchCamera()                 // toggle front / back camera
+session.switchAudioDevice(device.id)   // route audio to a specific output
+session.leaveMeeting()                 // end session and release all resources
 ```
 
 ---
@@ -193,19 +211,16 @@ Subscribe to named topics after joining. Any number of topics can be active simu
 
 ```kotlin
 // Subscribe
-subscribeToTopic("chat") { message ->
+session.subscribeToTopic("chat") { message ->
     println("${message.senderId}: ${message.content}")
 }
 
 // Send
-sendRealtimeMessage(topic = "chat", data = "Hello!", lifetimeMs = 0)
+session.sendRealtimeMessage(topic = "chat", data = "Hello!", lifetimeMs = 0)
 
 // Unsubscribe
-unsubscribeFromTopic("chat")
+session.unsubscribeFromTopic("chat")
 ```
-
-## Example Project
-[kmp-chime-demo](https://github.com/surajkumar/kmp-chime-demo)
 
 ## License
 
