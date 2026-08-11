@@ -71,7 +71,6 @@ expect class ChimeSDK {
         onRemoteVideoAvailable: (Boolean, Int) -> Unit,
         onCameraSendAvailable: (Boolean) -> Unit,
         onSessionError: (String, Boolean) -> Unit,
-        onVideoNeedsRestart: () -> Unit,
         selectedAudioInputDevice: String?,
         isJoiningOnMute: Boolean,
         onLocalTileAdded: (Int) -> Unit,

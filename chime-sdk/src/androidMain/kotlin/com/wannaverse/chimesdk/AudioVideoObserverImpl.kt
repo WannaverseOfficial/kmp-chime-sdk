@@ -12,15 +12,10 @@ class AudioVideoObserverImpl(
     private val onRemoteVideoAvailable: (isAvailable: Boolean, sourceCount: Int) -> Unit,
     private val onCameraSendAvailable: (available: Boolean) -> Unit,
     private val onSessionError: (message: String, isRecoverable: Boolean) -> Unit,
-    private val onVideoNeedsRestart: () -> Unit,
     private val isJoiningOnMute: Boolean
 ) : AudioVideoObserver {
-    private var isVideoSessionActive = false
-    private var shouldRestartVideoAfterReconnect = false
-
     override fun onAudioSessionStartedConnecting(reconnecting: Boolean) {
         if (reconnecting) {
-            shouldRestartVideoAfterReconnect = isVideoSessionActive
             onConnectionStatusChanged(ConnectionStatus.RECONNECTING)
         } else {
             onConnectionStatusChanged(ConnectionStatus.CONNECTING)
@@ -31,21 +26,14 @@ class AudioVideoObserverImpl(
         onConnectionStatusChanged(ConnectionStatus.CONNECTED)
 
         if (!reconnecting && isJoiningOnMute) meetingSession.audioVideo.realtimeLocalMute()
-
-        if (reconnecting && shouldRestartVideoAfterReconnect && !isVideoSessionActive) {
-            onVideoNeedsRestart()
-            shouldRestartVideoAfterReconnect = false
-        }
     }
 
     override fun onAudioSessionDropped() {
-        shouldRestartVideoAfterReconnect = isVideoSessionActive
         onConnectionStatusChanged(ConnectionStatus.RECONNECTING)
         onSessionError("Audio connection lost, reconnecting...", true)
     }
 
     override fun onAudioSessionStopped(sessionStatus: MeetingSessionStatus) {
-        shouldRestartVideoAfterReconnect = false
         onConnectionStatusChanged(ConnectionStatus.DISCONNECTED)
 
         val message = when (sessionStatus.statusCode) {
@@ -59,7 +47,6 @@ class AudioVideoObserverImpl(
     }
 
     override fun onAudioSessionCancelledReconnect() {
-        shouldRestartVideoAfterReconnect = false
         onConnectionStatusChanged(ConnectionStatus.ERROR)
         onSessionError("Failed to reconnect to audio", false)
     }
@@ -75,14 +62,12 @@ class AudioVideoObserverImpl(
     override fun onVideoSessionStartedConnecting() {}
 
     override fun onVideoSessionStarted(sessionStatus: MeetingSessionStatus) {
-        isVideoSessionActive = true
         if (sessionStatus.statusCode == MeetingSessionStatusCode.VideoAtCapacityViewOnly) {
             onSessionError("Video at capacity. View only mode.", false)
         }
     }
 
     override fun onVideoSessionStopped(sessionStatus: MeetingSessionStatus) {
-        isVideoSessionActive = false
         if (sessionStatus.statusCode != MeetingSessionStatusCode.OK) {
             onSessionError("Video ended: ${sessionStatus.statusCode?.name ?: "unknown"}", false)
         }

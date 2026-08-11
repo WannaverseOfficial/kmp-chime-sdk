@@ -147,7 +147,6 @@ actual class ChimeSDK(
         onRemoteVideoAvailable: (Boolean, Int) -> Unit,
         onCameraSendAvailable: (Boolean) -> Unit,
         onSessionError: (String, Boolean) -> Unit,
-        onVideoNeedsRestart: () -> Unit,
         selectedAudioInputDevice: String?,
         isJoiningOnMute: Boolean,
         onLocalTileAdded: (Int) -> Unit,
@@ -183,7 +182,6 @@ actual class ChimeSDK(
             onRemoteVideoAvailable = onRemoteVideoAvailable,
             onCameraSendAvailable = onCameraSendAvailable,
             onSessionError = onSessionError,
-            onVideoNeedsRestart = onVideoNeedsRestart,
             isJoiningOnMute = isJoiningOnMute
         )
         meetingSession.audioVideo.addAudioVideoObserver(audioVideoObserver)

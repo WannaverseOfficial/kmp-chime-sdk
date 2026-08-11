@@ -19,7 +19,6 @@ class AudioVideoObserverImpl(
     private val onRemoteVideoAvailable: (isAvailable: Boolean, sourceCount: Int) -> Unit,
     private val onCameraSendAvailable: (available: Boolean) -> Unit,
     private val onSessionError: (message: String, isRecoverable: Boolean) -> Unit,
-    private val onVideoNeedsRestart: () -> Unit,
     private val isJoiningOnMute: Boolean
 ): NSObject(), AudioVideoObserverProtocol {
     init {
@@ -31,7 +30,6 @@ class AudioVideoObserverImpl(
     }
 
     private val remoteVideoSources: MutableMap<String, RemoteVideoSource> = mutableMapOf()
-    private var didStartLocalVideo = false
 
     override fun audioSessionDidStartConnectingWithReconnecting(reconnecting: Boolean) {
         onConnectionStatusChanged(
@@ -102,10 +100,5 @@ class AudioVideoObserverImpl(
 
     override fun cameraSendAvailabilityDidChangeWithAvailable(available: Boolean) {
         onCameraSendAvailable(available)
-
-//        if (available && !didStartLocalVideo) {
-//            meetingSession.audioVideo().startLocalVideoAndReturnError(null)
-//            didStartLocalVideo = true
-//        }
     }
 }
