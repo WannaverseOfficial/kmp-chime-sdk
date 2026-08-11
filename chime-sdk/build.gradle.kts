@@ -71,6 +71,8 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.activity.ktx)
+
             implementation(libs.amazon.chime.sdk)
             implementation(libs.amazon.chime.sdk.media)
         }

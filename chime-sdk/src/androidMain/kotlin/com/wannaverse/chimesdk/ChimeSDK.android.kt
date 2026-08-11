@@ -2,6 +2,7 @@ package com.wannaverse.chimesdk
 
 import android.content.Context
 import android.hardware.camera2.CameraManager
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -30,6 +31,14 @@ actual class ChimeSDK(
     private val eglCoreFactory: DefaultEglCoreFactory
 ) {
     actual companion object {
+        internal lateinit var applicationContext: Context
+
+        fun initialize(applicationContext: Context) {
+            this.applicationContext = applicationContext
+        }
+
+        fun ComponentActivity.initialize() = initialize(applicationContext)
+
         private val logger = ConsoleLogger(LogLevel.INFO)
 
         actual fun createSession(
@@ -75,7 +84,7 @@ actual class ChimeSDK(
                 DefaultMeetingSession(
                     meetingSessionConfiguration,
                     logger,
-                    appContext,
+                    applicationContext,
                     eglCoreFactory
                 )
 
@@ -218,7 +227,7 @@ actual class ChimeSDK(
 
     actual fun startLocalVideo() {
         val videoDevices = cachedVideoDevices ?: run {
-            val cm = appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val cm = applicationContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
             MediaDevice.listVideoDevices(cm).also { cachedVideoDevices = it }
         }
 
@@ -231,7 +240,7 @@ actual class ChimeSDK(
         if (cameraCaptureSource == null) {
             val factory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
             cameraCaptureSource = DefaultCameraCaptureSource(
-                appContext, logger, factory,
+                applicationContext, logger, factory,
                 eventAnalyticsController = eventAnalyticsController
             )
         }
@@ -291,7 +300,7 @@ actual class ChimeSDK(
         currentCameraFacing =
             if (currentCameraFacing == CameraFacing.FRONT) CameraFacing.BACK else CameraFacing.FRONT
 
-        val cm = appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val cm = applicationContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         val devices = MediaDevice.listVideoDevices(cm)
         cachedVideoDevices = devices
 
