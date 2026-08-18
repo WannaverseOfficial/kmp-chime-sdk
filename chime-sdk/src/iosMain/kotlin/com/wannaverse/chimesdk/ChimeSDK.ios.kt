@@ -94,6 +94,12 @@ actual class ChimeSDK(
 
     private var cameraCaptureSource: DefaultCameraCaptureSource? = null
 
+    private fun stopCameraCaptureSource() {
+        cameraCaptureSource?.setTorchEnabled(false)
+        cameraCaptureSource?.stop()
+        cameraCaptureSource = null
+    }
+
     actual fun getAvailableInputDevices(): List<AudioDevice> =
         meetingSession.audioVideo()
             .listAudioDevices()
@@ -216,8 +222,7 @@ actual class ChimeSDK(
         }
 
     actual fun leaveMeeting() {
-        cameraCaptureSource?.stop()
-        cameraCaptureSource = null
+        stopCameraCaptureSource()
 
         meetingSession.audioVideo().removeRealtimeObserverWithObserver(realtimeObserver)
         meetingSession.audioVideo().removeDeviceChangeObserverWithObserver(deviceObserver)
@@ -249,8 +254,7 @@ actual class ChimeSDK(
 
     actual fun stopLocalVideo() {
         meetingSession.audioVideo().stopLocalVideo()
-        cameraCaptureSource?.stop()
-        cameraCaptureSource = null
+        stopCameraCaptureSource()
     }
 
     @Composable
