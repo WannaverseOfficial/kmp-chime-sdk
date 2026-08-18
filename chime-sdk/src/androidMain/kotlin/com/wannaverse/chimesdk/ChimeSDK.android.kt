@@ -37,7 +37,8 @@ actual class ChimeSDK(
             this.applicationContext = applicationContext
         }
 
-        fun ComponentActivity.initialize() = initialize(applicationContext)
+        context(activity: ComponentActivity)
+        fun initialize() = initialize(applicationContext)
 
         private val logger = ConsoleLogger(LogLevel.INFO)
 
@@ -92,6 +93,15 @@ actual class ChimeSDK(
         }
     }
 
+    private lateinit var realTimeObserver: RealTimeObserverImpl
+    private lateinit var deviceObserver: DeviceObserverImpl
+    private lateinit var videoTileObserver: VideoTileObserverImpl
+    private lateinit var audioVideoObserver: AudioVideoObserverImpl
+    private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
+    private lateinit var dataMessageObserver: DataMessageObserverImpl
+
+    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
+
     actual fun getAvailableInputDevices(): List<AudioDevice> =
         meetingSession.audioVideo
             .listAudioDevices()
@@ -127,18 +137,6 @@ actual class ChimeSDK(
                     label = device.label
                 )
             }
-
-    private lateinit var realTimeObserver: RealTimeObserverImpl
-    private lateinit var deviceObserver: DeviceObserverImpl
-    private lateinit var videoTileObserver: VideoTileObserverImpl
-    private lateinit var audioVideoObserver: AudioVideoObserverImpl
-    private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
-    private lateinit var dataMessageObserver: DataMessageObserverImpl
-
-    private var cameraCaptureSource: CameraCaptureSource? = null
-    private var cachedVideoDevices: List<MediaDevice>? = null
-    private var currentCameraFacing = CameraFacing.FRONT
-    private var cameraOn = false
 
     actual fun joinMeeting(
         realTimeListener: RealTimeEventListener,
@@ -194,22 +192,31 @@ actual class ChimeSDK(
 
         dataMessageObserver = DataMessageObserverImpl(meetingSession)
 
-        try {
-            meetingSession.audioVideo.start()
-            meetingSession.audioVideo.startRemoteVideo()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
-        }
+        meetingSession.audioVideo.start()
+        meetingSession.audioVideo.startRemoteVideo()
     }
 
-    actual fun leaveMeeting() {
-        if (cameraOn || cameraCaptureSource != null) {
-            cameraCaptureSource?.stop()
-            meetingSession.audioVideo.stopLocalVideo()
-            cameraOn = false
-            cameraCaptureSource = null
+    actual fun getActiveAudioDevice(): AudioDevice? = meetingSession.audioVideo
+        .getActiveAudioDevice()
+        ?.let { device ->
+            val type = when (device.type) {
+                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.BUILT_IN_MIC
+                MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
+                else -> return null
+            }
+
+            return AudioDevice(
+                type = type,
+                label = device.label
+            )
         }
+
+    actual fun leaveMeeting() {
+        cameraCaptureSource?.stop()
+        cameraCaptureSource = null
 
         meetingSession.audioVideo.removeRealtimeObserver(realTimeObserver)
         meetingSession.audioVideo.removeDeviceChangeObserver(deviceObserver)
@@ -218,46 +225,35 @@ actual class ChimeSDK(
         meetingSession.audioVideo.removeActiveSpeakerObserver(activeSpeakerObserver)
         dataMessageObserver.clearListeners()
 
+        meetingSession.audioVideo.stopLocalVideo()
         meetingSession.audioVideo.stopRemoteVideo()
-        meetingSession.audioVideo.realtimeLocalMute()
         meetingSession.audioVideo.stop()
     }
 
-    actual fun startLocalVideo() {
-        val videoDevices = cachedVideoDevices ?: run {
-            val cm = applicationContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-            MediaDevice.listVideoDevices(cm).also { cachedVideoDevices = it }
+    actual fun startLocalVideo(cameraFacing: CameraFacing) {
+        val cameraManager = applicationContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val camera = MediaDevice.listVideoDevices(cameraManager).first {
+            it.type == if (cameraFacing == CameraFacing.FRONT) MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
         }
 
-        val desiredType = if (currentCameraFacing == CameraFacing.FRONT)
-            MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
+        val factory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
+        cameraCaptureSource = DefaultCameraCaptureSource(
+            context = applicationContext,
+            logger = logger,
+            surfaceTextureCaptureSourceFactory = factory,
+            eventAnalyticsController = eventAnalyticsController
+        ).apply {
+            device = camera
+            start()
 
-        val device = videoDevices.firstOrNull { it.type == desiredType }
-            ?: throw IllegalStateException("No camera found for $desiredType")
-
-        if (cameraCaptureSource == null) {
-            val factory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
-            cameraCaptureSource = DefaultCameraCaptureSource(
-                applicationContext, logger, factory,
-                eventAnalyticsController = eventAnalyticsController
-            )
+            meetingSession.audioVideo.startLocalVideo(this)
         }
-
-        cameraCaptureSource!!.device = device
-        cameraCaptureSource!!.start()
-        meetingSession.audioVideo.startLocalVideo(cameraCaptureSource!!)
-        cameraOn = true
     }
 
     actual fun stopLocalVideo() {
-        try {
-            meetingSession.audioVideo.stopLocalVideo()
-            cameraCaptureSource?.stop()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            cameraOn = false
-        }
+        meetingSession.audioVideo.stopLocalVideo()
+        cameraCaptureSource?.stop()
+        cameraCaptureSource = null
     }
 
     @Composable
@@ -292,25 +288,15 @@ actual class ChimeSDK(
         if (shouldMute) meetingSession.audioVideo.realtimeLocalMute() else meetingSession.audioVideo.realtimeLocalUnmute()
 
     actual fun switchCamera() {
-        val source = cameraCaptureSource ?: return
+        cameraCaptureSource?.switchCamera()
+    }
 
-        val previous = currentCameraFacing
-        currentCameraFacing =
-            if (currentCameraFacing == CameraFacing.FRONT) CameraFacing.BACK else CameraFacing.FRONT
+    actual fun torchAvailable(): Boolean = true
 
-        val cm = applicationContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        val devices = MediaDevice.listVideoDevices(cm)
-        cachedVideoDevices = devices
+    actual fun torchEnabled(): Boolean = cameraCaptureSource?.torchEnabled ?: false
 
-        val desiredType = if (currentCameraFacing == CameraFacing.FRONT)
-            MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
-
-        val newDevice = devices.firstOrNull { it.type == desiredType }
-        if (newDevice == null) {
-            currentCameraFacing = previous
-            return
-        }
-        source.device = newDevice
+    actual fun setTorchEnabled(enabled: Boolean) {
+        cameraCaptureSource?.torchEnabled = enabled
     }
 
     actual fun switchAudioDevice(device: AudioDevice?) {

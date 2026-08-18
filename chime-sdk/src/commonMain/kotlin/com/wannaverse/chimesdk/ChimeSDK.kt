@@ -59,7 +59,6 @@ expect class ChimeSDK {
      * @param onRemoteVideoAvailable Invoked when remote video availability or source count changes.
      * @param onCameraSendAvailable Invoked when the ability to send local camera video changes.
      * @param onSessionError Invoked on session errors; [isRecoverable] indicates whether the SDK will retry.
-     * @param onVideoNeedsRestart Invoked when the video session must be restarted by the caller.
      * @param selectedAudioInputDevice [AudioDevice.label] of the audio input device to use, or null to use the platform default.
      * @param isJoiningOnMute Whether to join with the microphone muted. Defaults to false.
      * @param onLocalTileAdded Invoked with the local video tile ID once the local tile is bound, or null if unavailable.
@@ -79,25 +78,54 @@ expect class ChimeSDK {
         onRemoteTileRemoved: () -> Unit
     )
 
-    /** Ends the active meeting session and releases all resources. */
+    /**
+     * Returns the currently active audio device for this session, or null if no device is active.
+     *
+     * This function will return null if [joinMeeting] has not been called.
+     */
+    fun getActiveAudioDevice(): AudioDevice?
+
+    /**
+     * Ends the active meeting session and releases all resources.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     */
     fun leaveMeeting()
 
-    /** Starts capturing and sending local camera video. */
-    fun startLocalVideo()
+    /**
+     * Starts capturing and sending local camera video.
+     *
+     * @param cameraFacing The camera to use for local video capture.
+     */
+    fun startLocalVideo(cameraFacing: CameraFacing)
 
-    /** Stops capturing and sending local camera video. */
+    /**
+     * Stops capturing and sending local camera video.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     */
     fun stopLocalVideo()
 
-    /** Composable that renders the local camera preview. */
+    /**
+     * Composable that renders the local camera preview.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     */
     @Composable
     fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier = Modifier)
 
-    /** Composable that renders a remote participant's video tile. */
+    /**
+     * Composable that renders a remote participant's video tile.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     */
     @Composable
     fun RemoteVideoView(tileId: Int, modifier: Modifier = Modifier)
 
     /**
      * Broadcasts a real-time data message on [topic].
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
      *
      * @param topic Destination topic string.
      * @param data UTF-8 payload, max 2 KB.
@@ -108,15 +136,46 @@ expect class ChimeSDK {
     /**
      * Mutes or unmutes the local microphone.
      *
+     * This function will have no effect if [joinMeeting] has not been called.
+     *
      * @return true if the operation succeeded.
      */
     fun setMute(shouldMute: Boolean): Boolean
 
-    /** Toggles between front and back cameras. */
+    /**
+     * Toggles between front and back cameras.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     */
     fun switchCamera()
 
     /**
+     * Returns true if the current device has a torch (flashlight) available.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     */
+    fun torchAvailable(): Boolean
+
+    /**
+     * Returns true if the torch (flashlight) is currently enabled.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     */
+    fun torchEnabled(): Boolean
+
+    /**
+     * Enables or disables the torch (flashlight) on the current camera.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
+     *
+     * @param enabled true to enable the torch, false to disable it.
+     */
+    fun setTorchEnabled(enabled: Boolean)
+
+    /**
      * Routes audio output to the given device.
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
      *
      * @param device target device, or null to use the platform default.
      */
@@ -125,6 +184,8 @@ expect class ChimeSDK {
     /**
      * Subscribes to incoming data messages on [topic]. Call after [joinMeeting].
      *
+     * This function will have no effect if [joinMeeting] has not been called.
+     *
      * @param topic Topic to subscribe to.
      * @param listener Invoked on the main thread for each received [TextMessage].
      */
@@ -132,6 +193,8 @@ expect class ChimeSDK {
 
     /**
      * Unsubscribes from data messages on [topic].
+     *
+     * This function will have no effect if [joinMeeting] has not been called.
      *
      * @param topic Topic previously passed to [subscribeToTopic].
      */
