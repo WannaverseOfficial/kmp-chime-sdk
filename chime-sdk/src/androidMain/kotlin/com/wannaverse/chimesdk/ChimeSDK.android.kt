@@ -38,7 +38,7 @@ actual class ChimeSDK(
         }
 
         context(activity: ComponentActivity)
-        fun initialize() = initialize(applicationContext)
+        fun initialize() = initialize(activity.applicationContext)
 
         private val logger = ConsoleLogger(LogLevel.INFO)
 
