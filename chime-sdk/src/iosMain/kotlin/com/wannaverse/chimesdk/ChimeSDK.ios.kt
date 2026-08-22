@@ -6,8 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
+import cocoapods.AmazonChimeSDK.CameraCaptureSourceProtocol
 import cocoapods.AmazonChimeSDK.ConsoleLogger
 import cocoapods.AmazonChimeSDK.DefaultActiveSpeakerPolicy
+import cocoapods.AmazonChimeSDK.DefaultCameraCaptureSource
 import cocoapods.AmazonChimeSDK.DefaultMeetingSession
 import cocoapods.AmazonChimeSDK.LogLevelINFO
 import cocoapods.AmazonChimeSDK.MediaDevice
@@ -15,6 +17,8 @@ import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBluetooth
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBuiltInSpeaker
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioHandset
 import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioWiredHeadset
+import cocoapods.AmazonChimeSDK.MediaDeviceTypeVideoBackCamera
+import cocoapods.AmazonChimeSDK.MediaDeviceTypeVideoFrontCamera
 import cocoapods.AmazonChimeSDK.MeetingSessionConfiguration
 import cocoapods.AmazonChimeSDK.MeetingSessionCredentials
 import cocoapods.AmazonChimeSDK.MeetingSessionURLs
@@ -81,6 +85,21 @@ actual class ChimeSDK(
         }
     }
 
+    private lateinit var realtimeObserver: RealTimeObserverImpl
+    private lateinit var deviceObserver: DeviceObserverImpl
+    private lateinit var videoTileObserver: VideoTileObserverImpl
+    private lateinit var audioVideoObserver: AudioVideoObserverImpl
+    private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
+    private lateinit var dataMessageObserver: DataMessageObserverImpl
+
+    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
+
+    private fun stopCameraCaptureSource() {
+        cameraCaptureSource?.setTorchEnabled(false)
+        cameraCaptureSource?.stop()
+        cameraCaptureSource = null
+    }
+
     actual fun getAvailableInputDevices(): List<AudioDevice> =
         meetingSession.audioVideo()
             .listAudioDevices()
@@ -116,13 +135,6 @@ actual class ChimeSDK(
                     label = device.label()
                 )
             }
-
-    private lateinit var realtimeObserver: RealTimeObserverImpl
-    private lateinit var deviceObserver: DeviceObserverImpl
-    private lateinit var videoTileObserver: VideoTileObserverImpl
-    private lateinit var audioVideoObserver: AudioVideoObserverImpl
-    private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
-    private lateinit var dataMessageObserver: DataMessageObserverImpl
 
     actual fun joinMeeting(
         realTimeListener: RealTimeEventListener,
@@ -192,7 +204,26 @@ actual class ChimeSDK(
         }
     }
 
+    actual fun getActiveAudioDevice(): AudioDevice? = meetingSession.audioVideo()
+        .getActiveAudioDevice()
+        ?.let { device ->
+            val type = when (device.type()) {
+                MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
+                MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceTypeAudioHandset -> AudioDeviceType.BUILT_IN_MIC
+                MediaDeviceTypeAudioBuiltInSpeaker -> AudioDeviceType.SPEAKER
+                else -> return null
+            }
+
+            return AudioDevice(
+                type = type,
+                label = device.label()
+            )
+        }
+
     actual fun leaveMeeting() {
+        stopCameraCaptureSource()
+
         meetingSession.audioVideo().removeRealtimeObserverWithObserver(realtimeObserver)
         meetingSession.audioVideo().removeDeviceChangeObserverWithObserver(deviceObserver)
         meetingSession.audioVideo().removeVideoTileObserverWithObserver(videoTileObserver)
@@ -205,12 +236,25 @@ actual class ChimeSDK(
         meetingSession.audioVideo().stop()
     }
 
-    actual fun startLocalVideo() {
+    actual fun startLocalVideo(cameraFacing: CameraFacing) {
         meetingSession.audioVideo().startLocalVideoAndReturnError(error = null)
+        val camera = MediaDevice.listVideoDevices()
+            .filterIsInstance<MediaDevice>()
+            .first {
+                it.type() == if (cameraFacing == CameraFacing.FRONT) MediaDeviceTypeVideoFrontCamera else MediaDeviceTypeVideoBackCamera
+            }
+
+        cameraCaptureSource = DefaultCameraCaptureSource(logger).apply {
+            setDevice(camera)
+            start()
+
+            meetingSession.audioVideo().startLocalVideoWithSource(this)
+        }
     }
 
     actual fun stopLocalVideo() {
         meetingSession.audioVideo().stopLocalVideo()
+        stopCameraCaptureSource()
     }
 
     @Composable
@@ -259,7 +303,17 @@ actual class ChimeSDK(
         return if (shouldMute) realtimeLocalMute() else realtimeLocalUnmute()
     }
 
-    actual fun switchCamera() = meetingSession.audioVideo().switchCamera()
+    actual fun switchCamera() {
+        cameraCaptureSource?.switchCamera()
+    }
+
+    actual fun torchAvailable(): Boolean = cameraCaptureSource?.torchAvailable ?: false
+
+    actual fun torchEnabled(): Boolean = cameraCaptureSource?.torchEnabled() ?: false
+
+    actual fun setTorchEnabled(enabled: Boolean) {
+        cameraCaptureSource?.setTorchEnabled(enabled)
+    }
 
     actual fun switchAudioDevice(device: AudioDevice?) {
         val targetChimeDevice = meetingSession

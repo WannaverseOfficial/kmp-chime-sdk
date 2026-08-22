@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
     spec.name                     = 'chime_sdk'
-    spec.version                  = '0.4.1'
+    spec.version                  = '0.5.0'
     spec.homepage                 = 'https://github.com/WannaverseOfficial/kmp-chime-sdk'
     spec.source                   = { :http=> ''}
     spec.authors                  = ''
@@ -9,7 +9,7 @@ Pod::Spec.new do |spec|
     spec.vendored_frameworks      = 'build/cocoapods/framework/chime_sdk.framework'
     spec.libraries                = 'c++'
     spec.ios.deployment_target    = '16.0'
-    spec.dependency 'AmazonChimeSDK', '~> 0.27.2'
+    spec.dependency 'AmazonChimeSDK', '~> 0.27.3'
     if !Dir.exist?('build/cocoapods/framework/chime_sdk.framework') || Dir.empty?('build/cocoapods/framework/chime_sdk.framework')
         raise "
         Kotlin framework 'chime_sdk' doesn't exist yet, so a proper Xcode project can't be generated.
