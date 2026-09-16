@@ -9,14 +9,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultEventAnalyticsController
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultMeetingStatsCollector
@@ -215,13 +226,13 @@ actual class ChimeSDK(
         meetingSession.audioVideo.stopLocalVideo()
     }
 
-    private lateinit var screenCaptureLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>
+    private lateinit var screenCaptureLauncher: ActivityResultLauncher<Intent>
     private var screenCaptureSource: DefaultScreenCaptureSource? = null
     private var screenCaptureServiceIntent: Intent? = null
 
     private fun stopScreenCaptureSource() {
         screenCaptureSource?.stop()
-        activity.stopService(screenCaptureServiceIntent)
+        screenCaptureServiceIntent?.let(activity::stopService)
         screenCaptureSource = null
         screenCaptureServiceIntent = null
 
@@ -279,6 +290,7 @@ actual class ChimeSDK(
 
     actual fun leaveMeeting() {
         stopCameraCaptureSource()
+        stopScreenCaptureSource()
 
         meetingSession.audioVideo.removeRealtimeObserver(realTimeObserver)
         meetingSession.audioVideo.removeDeviceChangeObserver(deviceObserver)
@@ -373,13 +385,42 @@ actual class ChimeSDK(
             activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         }
 
-        Image(
-            imageVector = ScreenRecordIcon,
-            contentDescription = "Screen share button",
-            modifier = Modifier.fillMaxSize().clickable {
+        Box(
+            modifier = Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
                 if (screenCaptureSource != null) stopScreenCaptureSource()
                 else screenCaptureLauncher.launch(mediaProjectionManager.createScreenCaptureIntent())
             }
-        )
+        ) {
+            Canvas(modifier = Modifier.size(28.dp)) {
+                val iconColor = if (screenCaptureSource != null) Color.Red else Color.Black
+                val strokeW = 3.dp.toPx()
+
+                drawCircle(
+                    color = iconColor,
+                    radius = size.minDimension / 4.5f
+                )
+
+                val arcPadding = strokeW / 2
+                val arcSize = size.minDimension - strokeW
+                val sweepAngle = 50f
+
+                for (i in 0..3) {
+                    val startAngle = (i * 90f) - (sweepAngle / 2f)
+
+                    drawArc(
+                        color = iconColor,
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = false,
+                        topLeft = Offset(arcPadding, arcPadding),
+                        size = Size(arcSize, arcSize),
+                        style = Stroke(width = strokeW, cap = StrokeCap.Butt)
+                    )
+                }
+            }
+        }
     }
 }
