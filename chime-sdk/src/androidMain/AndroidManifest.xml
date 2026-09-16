@@ -9,6 +9,7 @@
             android:name=".ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
             android:enabled="true"
+            android:stopWithTask="true"
             android:exported="false" />
     </application>
 

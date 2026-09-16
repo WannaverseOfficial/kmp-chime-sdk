@@ -5,14 +5,13 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.dokka)
     alias(libs.plugins.publishing)
     kotlin("native.cocoapods")
 }
 
 group = "com.wannaverse"
-version = "0.5.17"
+version = "0.5.1"
 
 kotlin {
     jvmToolchain(21)
@@ -81,9 +80,6 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.ui)
-        }
-        iosMain.dependencies {
-            implementation(libs.kotlinx.serialization.json)
         }
     }
 }

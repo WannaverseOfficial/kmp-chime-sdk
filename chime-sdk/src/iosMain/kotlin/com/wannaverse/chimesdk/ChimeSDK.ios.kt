@@ -4,7 +4,7 @@ package com.wannaverse.chimesdk
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -29,8 +29,6 @@ import cocoapods.AmazonChimeSDK.MeetingSessionCredentials
 import cocoapods.AmazonChimeSDK.MeetingSessionURLs
 import cocoapods.AmazonChimeSDK.URLRewriterUtils
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryOptionAllowBluetoothA2DP
 import platform.AVFAudio.AVAudioSessionCategoryOptionAllowBluetoothHFP
@@ -109,7 +107,10 @@ actual class ChimeSDK(
             )
 
             val meetingSession =
-                DefaultMeetingSession(configuration = configuration, logger = CompanionObject.logger)
+                DefaultMeetingSession(
+                    configuration = configuration,
+                    logger = CompanionObject.logger
+                )
 
             return ChimeSDK(meetingSession)
         }
@@ -229,6 +230,53 @@ actual class ChimeSDK(
                     } catch (e: Throwable) {
                         onSessionError.invoke("Failed to start audio: ${e.message}", false)
                     }
+                }
+            }
+        }
+    }
+
+    @Composable
+    actual fun MeetingScreen() {
+        DisposableEffect(meetingSession.configuration().meetingId()) {
+            val meetingSessionConfig = meetingSession.configuration()
+            val meetingId = meetingSessionConfig.meetingId()
+            val meetingCredentials = meetingSessionConfig.credentials()
+            val meetingUrls = meetingSessionConfig.urls()
+
+            val userDefaultsMeetingIdKey = "meetingId"
+            val userDefaultsCredentialsKey = "meetingCredentials"
+            val userDefaultsUrlsKey = "meetingUrls"
+
+            val credentialsJson = """
+                {
+                    "attendeeId": "${meetingCredentials.attendeeId()}",
+                    "externalUserId": "${meetingCredentials.externalUserId()}",
+                    "joinToken": "${meetingCredentials.joinToken()}"
+                }
+            """.trimIndent()
+            val urlsJson = """
+                {
+                    "audioFallbackUrl": "${meetingUrls.audioFallbackUrl()}",
+                    "audioHostUrl": "${meetingUrls.audioHostUrl()}",
+                    "turnControlUrl": "${meetingUrls.turnControlUrl()}",
+                    "signalingUrl": "${meetingUrls.signalingUrl()}",
+                    "ingestionUrl": "${meetingUrls.ingestionUrl()}"
+                }
+            """.trimIndent()
+
+            val suiteName = "group.${CompanionObject.bundleIdentifier}"
+            val userDefaults = NSUserDefaults(suiteName = suiteName)
+            with(userDefaults) {
+                setObject(meetingId as NSString, forKey = userDefaultsMeetingIdKey)
+                setObject(credentialsJson as NSString, forKey = userDefaultsCredentialsKey)
+                setObject(urlsJson as NSString, forKey = userDefaultsUrlsKey)
+            }
+
+            onDispose {
+                with(userDefaults) {
+                    removeObjectForKey(userDefaultsMeetingIdKey)
+                    removeObjectForKey(userDefaultsCredentialsKey)
+                    removeObjectForKey(userDefaultsUrlsKey)
                 }
             }
         }
@@ -374,36 +422,6 @@ actual class ChimeSDK(
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     actual fun ScreenShareButton() {
-        SideEffect {
-            val meetingSessionConfig = meetingSession.configuration()
-            val meetingId = meetingSessionConfig.meetingId()
-            val meetingCredentials = meetingSessionConfig.credentials()
-            val meetingUrls = meetingSessionConfig.urls()
-
-            val userDefaultsMeetingIdKey = "meetingId"
-            val userDefaultsCredentialsKey = "meetingCredentials"
-            val userDefaultsUrlsKey = "meetingUrls"
-
-            val credentialsJson = buildJsonObject {
-                put("attendeeId", meetingCredentials.attendeeId())
-                put("externalUserId", meetingCredentials.externalUserId())
-                put("joinToken", meetingCredentials.joinToken())
-            }.toString()
-            val urlsJson = buildJsonObject {
-                put("audioFallbackUrl", meetingUrls.audioFallbackUrl())
-                put("audioHostUrl", meetingUrls.audioHostUrl())
-                put("turnControlUrl", meetingUrls.turnControlUrl())
-                put("signalingUrl", meetingUrls.signalingUrl())
-                put("ingestionUrl", meetingUrls.ingestionUrl())
-            }.toString()
-
-            NSUserDefaults(suiteName = "group.${CompanionObject.bundleIdentifier}").apply {
-                setObject(meetingId as NSString, forKey = userDefaultsMeetingIdKey)
-                setObject(credentialsJson as NSString, forKey = userDefaultsCredentialsKey)
-                setObject(urlsJson as NSString, forKey = userDefaultsUrlsKey)
-            }
-        }
-
         val pickerViewDiameter = remember { 35.0 }
         val broadcastPicker = remember {
             RPSystemBroadcastPickerView(
