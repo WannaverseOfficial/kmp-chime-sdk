@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.wannaverse"
-version = "0.5.0"
+version = "0.5.1"
 
 kotlin {
     jvmToolchain(21)
@@ -73,8 +73,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.activity.ktx)
 
-            implementation(libs.amazon.chime.sdk)
-            implementation(libs.amazon.chime.sdk.media)
+            implementation(libs.chime)
+            implementation(libs.chime.media)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

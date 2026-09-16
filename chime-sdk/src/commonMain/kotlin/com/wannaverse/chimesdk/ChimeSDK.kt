@@ -79,6 +79,12 @@ expect class ChimeSDK {
     )
 
     /**
+     * This must be called unconditionally, as part of the initialization path.
+     */
+    @Composable
+    fun MeetingScreen()
+
+    /**
      * Returns the currently active audio device for this session, or null if no device is active.
      *
      * This function will return null if [joinMeeting] has not been called.
@@ -199,4 +205,7 @@ expect class ChimeSDK {
      * @param topic Topic previously passed to [subscribeToTopic].
      */
     fun unsubscribeFromTopic(topic: String)
+
+    @Composable
+    fun ScreenShareButton()
 }
