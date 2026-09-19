@@ -31,14 +31,12 @@ actual class ChimeSDK(
     private val eglCoreFactory: DefaultEglCoreFactory
 ) {
     actual companion object {
-        internal lateinit var applicationContext: Context
-
-        fun initialize(applicationContext: Context) {
-            this.applicationContext = applicationContext
-        }
+        internal lateinit var activity: ComponentActivity
 
         context(activity: ComponentActivity)
-        fun initialize() = initialize(activity.applicationContext)
+        fun initialize() {
+            this.activity = activity
+        }
 
         private val logger = ConsoleLogger(LogLevel.INFO)
 
@@ -81,13 +79,12 @@ actual class ChimeSDK(
 
             val eglCoreFactory = DefaultEglCoreFactory()
 
-            val meetingSession =
-                DefaultMeetingSession(
-                    meetingSessionConfiguration,
-                    logger,
-                    applicationContext,
-                    eglCoreFactory
-                )
+            val meetingSession = DefaultMeetingSession(
+                configuration = meetingSessionConfiguration,
+                logger = logger,
+                context = activity,
+                eglCoreFactory = eglCoreFactory
+            )
 
             return ChimeSDK(meetingSession, eventAnalyticsController, eglCoreFactory)
         }
@@ -234,14 +231,14 @@ actual class ChimeSDK(
     }
 
     actual fun startLocalVideo(cameraFacing: CameraFacing) {
-        val cameraManager = applicationContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val cameraManager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         val camera = MediaDevice.listVideoDevices(cameraManager).first {
             it.type == if (cameraFacing == CameraFacing.FRONT) MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
         }
 
         val factory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
         cameraCaptureSource = DefaultCameraCaptureSource(
-            context = applicationContext,
+            context = activity,
             logger = logger,
             surfaceTextureCaptureSourceFactory = factory,
             eventAnalyticsController = eventAnalyticsController

@@ -187,7 +187,7 @@ expect class ChimeSDK {
      * This function will have no effect if [joinMeeting] has not been called.
      *
      * @param topic Topic to subscribe to.
-     * @param listener Invoked on the main thread for each received [TextMessage].
+     * @param listener Invoked on the main thread for each received [ChimeMessage].
      */
     fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit)
 
