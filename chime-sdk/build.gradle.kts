@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotlin.multiplatform.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dokka)
@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.wannaverse"
-version = "0.5.0"
+version = "0.5.1"
 
 kotlin {
     jvmToolchain(21)
@@ -30,10 +30,10 @@ kotlin {
         summary = "KMP wrapper for Amazon ChimeSDK"
         homepage = "https://github.com/WannaverseOfficial/kmp-chime-sdk"
         version = project.version.toString()
-        ios.deploymentTarget = "16.0"
+        ios.deploymentTarget = "15.0"
 
         pod("AmazonChimeSDK") {
-            version = "~> 0.27.3"
+            version = "~> 0.27.0"
             linkOnly = true
         }
     }
@@ -44,26 +44,30 @@ kotlin {
 
     iosArm64 {
         compilations["main"].cinterops {
-            val AmazonChimeSDK = create("AmazonChimeSDK") {
+            create("AmazonChimeSDK") {
                 defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
                 packageName("cocoapods.AmazonChimeSDK")
                 compilerOpts(
                     "-fmodules",
-                    "-F", "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$devSlice",
-                    "-F", "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$devSlice"
+                    "-F",
+                    "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$devSlice",
+                    "-F",
+                    "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$devSlice"
                 )
             }
         }
     }
     iosSimulatorArm64 {
         compilations["main"].cinterops {
-            val AmazonChimeSDK = create("AmazonChimeSDK") {
+            create("AmazonChimeSDK") {
                 defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
                 packageName("cocoapods.AmazonChimeSDK")
                 compilerOpts(
                     "-fmodules",
-                    "-F", "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$simSlice",
-                    "-F", "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$simSlice"
+                    "-F",
+                    "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$simSlice",
+                    "-F",
+                    "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$simSlice"
                 )
             }
         }
@@ -73,8 +77,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.activity.ktx)
 
-            implementation(libs.amazon.chime.sdk)
-            implementation(libs.amazon.chime.sdk.media)
+            implementation(libs.chime)
+            implementation(libs.chime.media)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -87,9 +91,7 @@ kotlin {
 mavenPublishing {
     publishToMavenCentral()
 
-    if (!project.hasProperty("skipSigning")) {
-        signAllPublications()
-    }
+    if (!project.hasProperty("skipSigning")) signAllPublications()
 
     coordinates(group.toString(), "chimesdk", version.toString())
 
@@ -129,6 +131,6 @@ afterEvaluate {
 
 dokka {
     dokkaPublications.html {
-        outputDirectory.set(file("${rootDir}/docs"))
+        outputDirectory.set(file("$rootDir/docs"))
     }
 }

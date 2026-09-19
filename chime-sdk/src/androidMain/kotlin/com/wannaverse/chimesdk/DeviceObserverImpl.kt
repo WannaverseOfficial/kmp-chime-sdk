@@ -24,7 +24,7 @@ class DeviceObserverImpl(
 
             AudioDevice(
                 label = device.label,
-                type = type,
+                type = type
             )
         }
 

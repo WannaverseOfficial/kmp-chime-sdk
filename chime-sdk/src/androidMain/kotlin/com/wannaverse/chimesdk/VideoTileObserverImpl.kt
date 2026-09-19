@@ -1,6 +1,5 @@
 package com.wannaverse.chimesdk
 
-import android.content.Context
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileState
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.TextureRenderView
