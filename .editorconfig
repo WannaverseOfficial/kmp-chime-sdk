@@ -1,0 +1,5 @@
+[*.{kt,kts}]
+ktlint_code_style = android_studio
+ktlint_standard_function-naming = disabled
+ktlint_standard_max-line-length = disabled
+ktlint_standard_multiline-if-else = disabled

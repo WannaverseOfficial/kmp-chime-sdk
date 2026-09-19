@@ -9,11 +9,10 @@ import platform.darwin.NSObject
 private const val SPEAKING_THRESHOLD = 0.05
 
 @OptIn(ExperimentalForeignApi::class)
-class ActiveSpeakerObserverImpl(val onActiveSpeakersChanged: (Set<String>) -> Unit) : NSObject(),
+class ActiveSpeakerObserverImpl(val onActiveSpeakersChanged: (Set<String>) -> Unit) :
+    NSObject(),
     ActiveSpeakerObserverProtocol {
     init {
-        val _this: ActiveSpeakerObserverProtocol = this
-
         ProtocolDescriptor(
             candidates = listOf("ActiveSpeakerObserver", "_TtP14AmazonChimeSDK21ActiveSpeakerObserver_")
         ).forceRegisterProtocol(this)
@@ -25,10 +24,8 @@ class ActiveSpeakerObserverImpl(val onActiveSpeakersChanged: (Set<String>) -> Un
 
     override fun activeSpeakerDidDetectWithAttendeeInfo(attendeeInfo: List<*>) {}
 
-    override fun activeSpeakerScoreDidChangeWithScores(scores: Map<Any?, *>) =
-        scores.mapKeys { (attendee) -> (attendee as AttendeeInfo).externalUserId() }
-            .filter { (_, score) -> (score as Double) > SPEAKING_THRESHOLD }
-            .keys
-            .let(onActiveSpeakersChanged)
-
+    override fun activeSpeakerScoreDidChangeWithScores(scores: Map<Any?, *>) = scores.mapKeys { (attendee) -> (attendee as AttendeeInfo).externalUserId() }
+        .filter { (_, score) -> (score as Double) > SPEAKING_THRESHOLD }
+        .keys
+        .let(onActiveSpeakersChanged)
 }

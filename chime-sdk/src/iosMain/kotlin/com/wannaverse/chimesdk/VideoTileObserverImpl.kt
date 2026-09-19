@@ -4,9 +4,9 @@ import cocoapods.AmazonChimeSDK.DefaultMeetingSession
 import cocoapods.AmazonChimeSDK.DefaultVideoRenderView
 import cocoapods.AmazonChimeSDK.VideoTileObserverProtocol
 import cocoapods.AmazonChimeSDK.VideoTileState
+import kotlin.collections.set
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
-import kotlin.collections.set
 
 @OptIn(ExperimentalForeignApi::class)
 class VideoTileObserverImpl(
@@ -15,10 +15,9 @@ class VideoTileObserverImpl(
     private val onLocalTileRemoved: () -> Unit,
     private val onRemoteTileAdded: (Int) -> Unit,
     private val onRemoteTileRemoved: () -> Unit
-): NSObject(), VideoTileObserverProtocol {
+) : NSObject(),
+    VideoTileObserverProtocol {
     init {
-        val _this: VideoTileObserverProtocol = this
-
         ProtocolDescriptor(
             candidates = listOf("VideoTileObserver", "_TtP14AmazonChimeSDK17VideoTileObserver_")
         ).forceRegisterProtocol(this)
