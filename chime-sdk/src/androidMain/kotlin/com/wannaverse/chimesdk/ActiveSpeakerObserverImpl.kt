@@ -10,9 +10,8 @@ class ActiveSpeakerObserverImpl(val onActiveSpeakersChanged: (Set<String>) -> Un
 
     override fun onActiveSpeakerDetected(attendeeInfo: Array<AttendeeInfo>) {}
 
-    override fun onActiveSpeakerScoreChanged(scores: Map<AttendeeInfo, Double>) =
-        scores.mapKeys { (attendee) -> attendee.externalUserId }
-            .filter { (_, score) -> score > SPEAKING_THRESHOLD }
-            .keys
-            .let(onActiveSpeakersChanged)
+    override fun onActiveSpeakerScoreChanged(scores: Map<AttendeeInfo, Double>) = scores.mapKeys { (attendee) -> attendee.externalUserId }
+        .filter { (_, score) -> score > SPEAKING_THRESHOLD }
+        .keys
+        .let(onActiveSpeakersChanged)
 }

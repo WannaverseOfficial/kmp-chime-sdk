@@ -100,41 +100,39 @@ actual class ChimeSDK(
         cameraCaptureSource = null
     }
 
-    actual fun getAvailableInputDevices(): List<AudioDevice> =
-        meetingSession.audioVideo()
-            .listAudioDevices()
-            .mapNotNull { device ->
-                if (device !is MediaDevice) return@mapNotNull null
-                val type = when (device.type()) {
-                    MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
-                    MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
-                    MediaDeviceTypeAudioHandset -> AudioDeviceType.BUILT_IN_MIC
-                    else -> return@mapNotNull null
-                }
-
-                AudioDevice(
-                    type = type,
-                    label = device.label()
-                )
+    actual fun getAvailableInputDevices(): List<AudioDevice> = meetingSession.audioVideo()
+        .listAudioDevices()
+        .mapNotNull { device ->
+            if (device !is MediaDevice) return@mapNotNull null
+            val type = when (device.type()) {
+                MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
+                MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceTypeAudioHandset -> AudioDeviceType.BUILT_IN_MIC
+                else -> return@mapNotNull null
             }
 
-    actual fun getAvailableOutputDevices(): List<AudioDevice> =
-        meetingSession.audioVideo()
-            .listAudioDevices()
-            .mapNotNull { device ->
-                if (device !is MediaDevice) return@mapNotNull null
-                val type = when (device.type()) {
-                    MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
-                    MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
-                    MediaDeviceTypeAudioBuiltInSpeaker -> AudioDeviceType.SPEAKER
-                    else -> return@mapNotNull null
-                }
+            AudioDevice(
+                type = type,
+                label = device.label()
+            )
+        }
 
-                AudioDevice(
-                    type = type,
-                    label = device.label()
-                )
+    actual fun getAvailableOutputDevices(): List<AudioDevice> = meetingSession.audioVideo()
+        .listAudioDevices()
+        .mapNotNull { device ->
+            if (device !is MediaDevice) return@mapNotNull null
+            val type = when (device.type()) {
+                MediaDeviceTypeAudioBluetooth -> AudioDeviceType.BLUETOOTH
+                MediaDeviceTypeAudioWiredHeadset -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceTypeAudioBuiltInSpeaker -> AudioDeviceType.SPEAKER
+                else -> return@mapNotNull null
             }
+
+            AudioDevice(
+                type = type,
+                label = device.label()
+            )
+        }
 
     actual fun joinMeeting(
         realTimeListener: RealTimeEventListener,
@@ -279,9 +277,10 @@ actual class ChimeSDK(
     @Composable
     actual fun RemoteVideoView(tileId: Int, modifier: Modifier) = UIKitView(
         factory = {
-            (videoTileObserver.getRemoteView(tileId)
-                ?: throw IllegalArgumentException("Remote view for tile $tileId not found")
-            ).apply {
+            (
+                videoTileObserver.getRemoteView(tileId)
+                    ?: throw IllegalArgumentException("Remote view for tile $tileId not found")
+                ).apply {
                 contentMode = UIViewContentMode.UIViewContentModeScaleAspectFill
                 layer.masksToBounds = true
             }
@@ -324,8 +323,7 @@ actual class ChimeSDK(
         meetingSession.audioVideo().chooseAudioDeviceWithMediaDevice(targetChimeDevice)
     }
 
-    actual fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit) =
-        dataMessageObserver.addListener(topic, listener)
+    actual fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit) = dataMessageObserver.addListener(topic, listener)
 
     actual fun unsubscribeFromTopic(topic: String) = dataMessageObserver.removeListener(topic)
 

@@ -7,10 +7,10 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
-class DataMessageObserverImpl(private val meetingSession: DefaultMeetingSession) : NSObject(), DataMessageObserverProtocol {
+class DataMessageObserverImpl(private val meetingSession: DefaultMeetingSession) :
+    NSObject(),
+    DataMessageObserverProtocol {
     init {
-        val _this: DataMessageObserverProtocol = this
-
         ProtocolDescriptor(
             candidates = listOf("DataMessageObserver", "_TtP14AmazonChimeSDK19DataMessageObserver_")
         ).forceRegisterProtocol(this)
