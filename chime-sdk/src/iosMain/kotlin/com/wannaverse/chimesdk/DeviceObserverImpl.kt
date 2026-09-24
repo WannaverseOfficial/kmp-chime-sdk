@@ -14,10 +14,9 @@ import platform.darwin.NSObject
 class DeviceObserverImpl(
     private val meetingSession: DefaultMeetingSession,
     private val realTimeEventListener: RealTimeEventListener
-) : NSObject(), DeviceChangeObserverProtocol {
+) : NSObject(),
+    DeviceChangeObserverProtocol {
     init {
-        val _this: DeviceChangeObserverProtocol = this
-
         ProtocolDescriptor(
             candidates = listOf("DeviceChangeObserver", "_TtP14AmazonChimeSDK20DeviceChangeObserver_")
         ).forceRegisterProtocol(this)
@@ -38,7 +37,7 @@ class DeviceObserverImpl(
 
                 AudioDevice(
                     label = device.label(),
-                    type = type,
+                    type = type
                 )
             }
 

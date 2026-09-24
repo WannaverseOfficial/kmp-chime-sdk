@@ -20,10 +20,9 @@ class AudioVideoObserverImpl(
     private val onCameraSendAvailable: (available: Boolean) -> Unit,
     private val onSessionError: (message: String, isRecoverable: Boolean) -> Unit,
     private val isJoiningOnMute: Boolean
-): NSObject(), AudioVideoObserverProtocol {
+) : NSObject(),
+    AudioVideoObserverProtocol {
     init {
-        val _this: AudioVideoObserverProtocol = this
-
         ProtocolDescriptor(
             candidates = listOf("AudioVideoObserver", "_TtP14AmazonChimeSDK18AudioVideoObserver_")
         ).forceRegisterProtocol(this)

@@ -14,5 +14,3 @@ internal data class ProtocolDescriptor(val candidates: List<String>) {
         class_addProtocol(cls, protocol)
     }
 }
-
-

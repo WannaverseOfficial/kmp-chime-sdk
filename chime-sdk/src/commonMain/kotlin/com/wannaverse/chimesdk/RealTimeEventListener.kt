@@ -7,35 +7,35 @@ package com.wannaverse.chimesdk
  */
 interface RealTimeEventListener {
     /** Invoked when one or more attendees join the meeting. */
-    fun onAttendeesJoined(attendees: List<Attendee>)
+    fun onAttendeesJoined(attendeeInfos: List<AttendeeInfo>)
 
     /** Invoked when one or more attendees are dropped unexpectedly. */
-    fun onAttendeesDropped(attendees: List<Attendee>)
+    fun onAttendeesDropped(attendeeInfos: List<AttendeeInfo>)
 
     /** Invoked when one or more attendees leave the meeting cleanly. */
-    fun onAttendeesLeft(attendees: List<Attendee>)
+    fun onAttendeesLeft(attendeeInfos: List<AttendeeInfo>)
 
     /** Invoked when one or more attendees mute themselves. */
-    fun onAttendeesMuted(attendees: List<Attendee>)
+    fun onAttendeesMuted(attendeeInfos: List<AttendeeInfo>)
 
     /** Invoked when one or more attendees unmute themselves. */
-    fun onAttendeesUnmuted(attendees: List<Attendee>)
+    fun onAttendeesUnmuted(attendeeInfos: List<AttendeeInfo>)
 
     /**
      * Invoked when an attendee's signal strength changes.
      *
-     * @param attendee The attendee whose signal strength changed.
+     * @param attendeeInfo The attendee whose signal strength changed.
      * @param signal Signal strength in the range [0, 1] where 1 is strongest.
      */
-    fun onSignalStrengthChanged(attendee: Attendee, signal: Int)
+    fun onSignalStrengthChanged(attendeeInfo: AttendeeInfo, signal: Int)
 
     /**
      * Invoked when an attendee's audio volume changes.
      *
-     * @param attendee The attendee whose volume changed.
+     * @param attendeeInfo The attendee whose volume changed.
      * @param volume Volume level in the range [0, 1] where 1 is loudest.
      */
-    fun onVolumeChanged(attendee: Attendee, volume: Int)
+    fun onVolumeChanged(attendeeInfo: AttendeeInfo, volume: Int)
 
     /**
      * Invoked when the list of available audio devices changes or the active device changes.

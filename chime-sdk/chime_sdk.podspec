@@ -8,8 +8,8 @@ Pod::Spec.new do |spec|
     spec.summary                  = 'KMP wrapper for Amazon ChimeSDK'
     spec.vendored_frameworks      = 'build/cocoapods/framework/chime_sdk.framework'
     spec.libraries                = 'c++'
-    spec.ios.deployment_target    = '16.0'
-    spec.dependency 'AmazonChimeSDK', '~> 0.27.3'
+    spec.ios.deployment_target    = '15.0'
+    spec.dependency 'AmazonChimeSDK', '~> 0.27.0'
     if !Dir.exist?('build/cocoapods/framework/chime_sdk.framework') || Dir.empty?('build/cocoapods/framework/chime_sdk.framework')
         raise "
         Kotlin framework 'chime_sdk' doesn't exist yet, so a proper Xcode project can't be generated.

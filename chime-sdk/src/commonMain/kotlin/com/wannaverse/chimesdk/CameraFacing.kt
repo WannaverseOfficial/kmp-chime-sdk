@@ -4,6 +4,7 @@ package com.wannaverse.chimesdk
 enum class CameraFacing {
     /** Front-facing (selfie) camera. */
     FRONT,
+
     /** Rear-facing camera. */
     BACK
 }

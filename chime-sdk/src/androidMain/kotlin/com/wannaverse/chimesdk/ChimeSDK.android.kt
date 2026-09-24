@@ -103,13 +103,12 @@ actual class ChimeSDK(
 
             val eglCoreFactory = DefaultEglCoreFactory()
 
-            val meetingSession =
-                DefaultMeetingSession(
-                    meetingSessionConfiguration,
-                    logger,
-                    activity.applicationContext,
-                    eglCoreFactory
-                )
+            val meetingSession = DefaultMeetingSession(
+                configuration = meetingSessionConfiguration,
+                logger = logger,
+                context = activity,
+                eglCoreFactory = eglCoreFactory
+            )
 
             return ChimeSDK(meetingSession, eventAnalyticsController, eglCoreFactory)
         }
@@ -122,41 +121,47 @@ actual class ChimeSDK(
     private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
     private lateinit var dataMessageObserver: DataMessageObserverImpl
 
-    actual fun getAvailableInputDevices(): List<AudioDevice> =
-        meetingSession.audioVideo
-            .listAudioDevices()
-            .mapNotNull { device ->
-                val type = when (device.type) {
-                    MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
-                    MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
-                    MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
-                    MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.BUILT_IN_MIC
-                    else -> return@mapNotNull null
-                }
+    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
 
-                AudioDevice(
-                    type = type,
-                    label = device.label
-                )
+    private fun stopCameraCaptureSource() {
+        cameraCaptureSource?.torchEnabled = false
+        cameraCaptureSource?.stop()
+        cameraCaptureSource = null
+    }
+
+    actual fun getAvailableInputDevices(): List<AudioDevice> = meetingSession.audioVideo
+        .listAudioDevices()
+        .mapNotNull { device ->
+            val type = when (device.type) {
+                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                MediaDeviceType.AUDIO_HANDSET -> AudioDeviceType.BUILT_IN_MIC
+                else -> return@mapNotNull null
             }
 
-    actual fun getAvailableOutputDevices(): List<AudioDevice> =
-        meetingSession.audioVideo
-            .listAudioDevices()
-            .mapNotNull { device ->
-                val type = when (device.type) {
-                    MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
-                    MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
-                    MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
-                    MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
-                    else -> return@mapNotNull null
-                }
+            AudioDevice(
+                type = type,
+                label = device.label
+            )
+        }
 
-                AudioDevice(
-                    type = type,
-                    label = device.label
-                )
+    actual fun getAvailableOutputDevices(): List<AudioDevice> = meetingSession.audioVideo
+        .listAudioDevices()
+        .mapNotNull { device ->
+            val type = when (device.type) {
+                MediaDeviceType.AUDIO_BLUETOOTH -> AudioDeviceType.BLUETOOTH
+                MediaDeviceType.AUDIO_WIRED_HEADSET -> AudioDeviceType.WIRED_HEADSET
+                MediaDeviceType.AUDIO_USB_HEADSET -> AudioDeviceType.EARPIECE
+                MediaDeviceType.AUDIO_BUILTIN_SPEAKER -> AudioDeviceType.SPEAKER
+                else -> return@mapNotNull null
             }
+
+            AudioDevice(
+                type = type,
+                label = device.label
+            )
+        }
 
     actual fun joinMeeting(
         realTimeListener: RealTimeEventListener,
@@ -350,11 +355,9 @@ actual class ChimeSDK(
         update = {}
     )
 
-    actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) =
-        meetingSession.audioVideo.realtimeSendDataMessage(topic, data, lifetimeMs.toInt())
+    actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) = meetingSession.audioVideo.realtimeSendDataMessage(topic, data, lifetimeMs.toInt())
 
-    actual fun setMute(shouldMute: Boolean): Boolean =
-        if (shouldMute) meetingSession.audioVideo.realtimeLocalMute() else meetingSession.audioVideo.realtimeLocalUnmute()
+    actual fun setMute(shouldMute: Boolean): Boolean = if (shouldMute) meetingSession.audioVideo.realtimeLocalMute() else meetingSession.audioVideo.realtimeLocalUnmute()
 
     actual fun switchCamera() {
         cameraCaptureSource?.switchCamera()
@@ -374,8 +377,7 @@ actual class ChimeSDK(
             ?.let(meetingSession.audioVideo::chooseAudioDevice)
     }
 
-    actual fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit) =
-        dataMessageObserver.addListener(topic, listener)
+    actual fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit) = dataMessageObserver.addListener(topic, listener)
 
     actual fun unsubscribeFromTopic(topic: String) = dataMessageObserver.removeListener(topic)
 

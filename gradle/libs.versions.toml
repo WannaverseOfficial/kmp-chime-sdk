@@ -1,33 +1,29 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 compose = "1.12.0"
 
-agp = "9.3.2"
+agp = "9.4.1"
 activity = "1.13.0"
 
-kotlinx = "1.11.0"
-
-chime = "0.25.4"
+spotless = "8.10.2"
 
 [libraries]
-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
+compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose" }
+compose-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "compose" }
+compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose" }
 
 activity-ktx = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
 
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx" }
-
-chime = { group = "software.aws.chimesdk", name = "amazon-chime-sdk", version.ref = "chime" }
-chime-media = { group = "software.aws.chimesdk", name = "amazon-chime-sdk-media", version.ref = "chime" }
+chime = { group = "software.aws.chimesdk", name = "amazon-chime-sdk", version = "0.25.5" }
+chime-media = { group = "software.aws.chimesdk", name = "amazon-chime-sdk-media", version = "0.25.4" }
 
 [plugins]
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
-
-kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 
 dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
 publishing = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
+
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
