@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.4.20"
-compose = "1.12.0"
+compose = "1.12.1"
 
 agp = "9.4.1"
 activity = "1.13.0"
