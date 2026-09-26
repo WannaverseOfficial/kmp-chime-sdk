@@ -455,7 +455,7 @@ actual class ChimeSDK(
                     toItem = it,
                     _attribute = NSLayoutAttributeCenterX,
                     multiplier = 1.0,
-                    constant = 0.0,
+                    constant = 0.0
                 )
                 val centerY = NSLayoutConstraint.constraintWithItem(
                     view1 = broadcastPicker,
@@ -464,7 +464,7 @@ actual class ChimeSDK(
                     toItem = it,
                     _attribute = NSLayoutAttributeCenterY,
                     multiplier = 1.0,
-                    constant = 0.0,
+                    constant = 0.0
                 )
                 val width = NSLayoutConstraint.constraintWithItem(
                     view1 = broadcastPicker,
@@ -473,7 +473,7 @@ actual class ChimeSDK(
                     toItem = nil,
                     _attribute = NSLayoutAttributeNotAnAttribute,
                     multiplier = 1.0,
-                    constant = pickerViewDiameter,
+                    constant = pickerViewDiameter
                 )
                 val height = NSLayoutConstraint.constraintWithItem(
                     view1 = broadcastPicker,
@@ -482,7 +482,7 @@ actual class ChimeSDK(
                     toItem = nil,
                     _attribute = NSLayoutAttributeNotAnAttribute,
                     multiplier = 1.0,
-                    constant = pickerViewDiameter,
+                    constant = pickerViewDiameter
                 )
                 it.addConstraints(listOf(centerX, centerY, width, height))
             }

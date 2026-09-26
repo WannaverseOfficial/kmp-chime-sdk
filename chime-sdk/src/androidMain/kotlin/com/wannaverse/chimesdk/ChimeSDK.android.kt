@@ -6,34 +6,32 @@ import android.content.Intent
 import android.hardware.camera2.CameraManager
 import android.media.projection.MediaProjectionManager
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultEventAnalyticsController
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultMeetingStatsCollector
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerpolicy.DefaultActiveSpeakerPolicy
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.contentshare.ContentShareSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.LocalVideoConfiguration
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultCameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultScreenCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultSurfaceTextureCaptureSourceFactory
@@ -47,6 +45,9 @@ import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionCredentia
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionURLs
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.ConsoleLogger
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class ChimeSDK(
@@ -120,14 +121,6 @@ actual class ChimeSDK(
     private lateinit var audioVideoObserver: AudioVideoObserverImpl
     private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
     private lateinit var dataMessageObserver: DataMessageObserverImpl
-
-    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
-
-    private fun stopCameraCaptureSource() {
-        cameraCaptureSource?.torchEnabled = false
-        cameraCaptureSource?.stop()
-        cameraCaptureSource = null
-    }
 
     actual fun getAvailableInputDevices(): List<AudioDevice> = meetingSession.audioVideo
         .listAudioDevices()
@@ -233,44 +226,44 @@ actual class ChimeSDK(
 
     private lateinit var screenCaptureLauncher: ActivityResultLauncher<Intent>
     private var screenCaptureSource: DefaultScreenCaptureSource? = null
-    private var screenCaptureServiceIntent: Intent? = null
 
     private fun stopScreenCaptureSource() {
-        screenCaptureSource?.stop()
-        screenCaptureServiceIntent?.let(activity::stopService)
-        screenCaptureSource = null
-        screenCaptureServiceIntent = null
+        activity.stopService(Intent(activity, ScreenCaptureService::class.java))
 
         meetingSession.audioVideo.stopContentShare()
+
+        screenCaptureSource?.stop()
+        screenCaptureSource = null
     }
 
     @Composable
     actual fun MeetingScreen() {
+        val coroutineScope = rememberCoroutineScope()
+
         screenCaptureLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 if (it.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
 
-                println("activity launched")
-                with(activity) {
-                    screenCaptureServiceIntent = Intent(this, ScreenCaptureService::class.java)
-                    startService(screenCaptureServiceIntent)
+                coroutineScope.launch {
+                    with(activity) {
+                        startService(Intent(this, ScreenCaptureService::class.java))
+                        delay(1.seconds)
 
-                    screenCaptureSource = DefaultScreenCaptureSource(
-                        this,
-                        logger,
-                        DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory),
-                        it.resultCode,
-                        it.data!!
-                    )
-                    screenCaptureSource!!.start()
+                        screenCaptureSource = DefaultScreenCaptureSource(
+                            this,
+                            logger,
+                            DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory),
+                            it.resultCode,
+                            it.data!!
+                        )
+                        screenCaptureSource!!.start()
 
-                    val contentShareSource = ContentShareSource().apply {
-                        videoSource = screenCaptureSource
+                        val contentShareSource = ContentShareSource().apply {
+                            videoSource = screenCaptureSource
+                        }
+
+                        meetingSession.audioVideo.startContentShare(contentShareSource)
                     }
-
-                    println("starting share")
-                    val contentShareConfig = LocalVideoConfiguration(3000)
-                    meetingSession.audioVideo.startContentShare(contentShareSource, contentShareConfig)
                 }
             }
     }
@@ -383,21 +376,23 @@ actual class ChimeSDK(
 
     @Composable
     actual fun ScreenShareButton() {
-        val mediaProjectionManager = remember {
-            activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val mediaProjectionManager = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+
+        var iconColor by remember { mutableStateOf(Color.Black) }
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(3.seconds)
+                iconColor = if (screenCaptureSource == null) Color.Black else Color.Red
+            }
         }
 
         Box(
-            modifier = Modifier.clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) {
+            modifier = Modifier.clickable {
                 if (screenCaptureSource != null) stopScreenCaptureSource()
                 else screenCaptureLauncher.launch(mediaProjectionManager.createScreenCaptureIntent())
             }
         ) {
             Canvas(modifier = Modifier.size(28.dp)) {
-                val iconColor = if (screenCaptureSource != null) Color.Red else Color.Black
                 val strokeW = 3.dp.toPx()
 
                 drawCircle(
