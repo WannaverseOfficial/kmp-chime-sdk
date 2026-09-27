@@ -1,17 +1,39 @@
 package com.wannaverse.chimesdk
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.hardware.camera2.CameraManager
+import android.media.projection.MediaProjectionManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultEventAnalyticsController
 import com.amazonaws.services.chime.sdk.meetings.analytics.DefaultMeetingStatsCollector
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerpolicy.DefaultActiveSpeakerPolicy
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.contentshare.ContentShareSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultCameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultScreenCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
@@ -23,6 +45,9 @@ import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionCredentia
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionURLs
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.ConsoleLogger
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class ChimeSDK(
@@ -96,14 +121,6 @@ actual class ChimeSDK(
     private lateinit var audioVideoObserver: AudioVideoObserverImpl
     private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
     private lateinit var dataMessageObserver: DataMessageObserverImpl
-
-    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
-
-    private fun stopCameraCaptureSource() {
-        cameraCaptureSource?.torchEnabled = false
-        cameraCaptureSource?.stop()
-        cameraCaptureSource = null
-    }
 
     actual fun getAvailableInputDevices(): List<AudioDevice> = meetingSession.audioVideo
         .listAudioDevices()
@@ -197,6 +214,60 @@ actual class ChimeSDK(
         meetingSession.audioVideo.startRemoteVideo()
     }
 
+    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
+
+    private fun stopCameraCaptureSource() {
+        cameraCaptureSource?.torchEnabled = false
+        cameraCaptureSource?.stop()
+        cameraCaptureSource = null
+
+        meetingSession.audioVideo.stopLocalVideo()
+    }
+
+    private lateinit var screenCaptureLauncher: ActivityResultLauncher<Intent>
+    private var screenCaptureSource: DefaultScreenCaptureSource? = null
+
+    private fun stopScreenCaptureSource() {
+        activity.stopService(Intent(activity, ScreenCaptureService::class.java))
+
+        meetingSession.audioVideo.stopContentShare()
+
+        screenCaptureSource?.stop()
+        screenCaptureSource = null
+    }
+
+    @Composable
+    actual fun MeetingScreen() {
+        val coroutineScope = rememberCoroutineScope()
+
+        screenCaptureLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                if (it.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+
+                coroutineScope.launch {
+                    with(activity) {
+                        startService(Intent(this, ScreenCaptureService::class.java))
+                        delay(1.seconds)
+
+                        screenCaptureSource = DefaultScreenCaptureSource(
+                            this,
+                            logger,
+                            DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory),
+                            it.resultCode,
+                            it.data!!
+                        )
+                        screenCaptureSource!!.start()
+
+                        val contentShareSource = ContentShareSource().apply {
+                            videoSource = screenCaptureSource
+                        }
+
+                        meetingSession.audioVideo.startContentShare(contentShareSource)
+                    }
+                }
+            }
+    }
+
     actual fun getActiveAudioDevice(): AudioDevice? = meetingSession.audioVideo
         .getActiveAudioDevice()
         ?.let { device ->
@@ -217,6 +288,7 @@ actual class ChimeSDK(
 
     actual fun leaveMeeting() {
         stopCameraCaptureSource()
+        stopScreenCaptureSource()
 
         meetingSession.audioVideo.removeRealtimeObserver(realTimeObserver)
         meetingSession.audioVideo.removeDeviceChangeObserver(deviceObserver)
@@ -225,7 +297,6 @@ actual class ChimeSDK(
         meetingSession.audioVideo.removeActiveSpeakerObserver(activeSpeakerObserver)
         dataMessageObserver.clearListeners()
 
-        meetingSession.audioVideo.stopLocalVideo()
         meetingSession.audioVideo.stopRemoteVideo()
         meetingSession.audioVideo.stop()
     }
@@ -250,10 +321,7 @@ actual class ChimeSDK(
         }
     }
 
-    actual fun stopLocalVideo() {
-        meetingSession.audioVideo.stopLocalVideo()
-        stopCameraCaptureSource()
-    }
+    actual fun stopLocalVideo() = stopCameraCaptureSource()
 
     @Composable
     actual fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier) {
@@ -305,4 +373,51 @@ actual class ChimeSDK(
     actual fun subscribeToTopic(topic: String, listener: (ChimeMessage) -> Unit) = dataMessageObserver.addListener(topic, listener)
 
     actual fun unsubscribeFromTopic(topic: String) = dataMessageObserver.removeListener(topic)
+
+    @Composable
+    actual fun ScreenShareButton() {
+        val mediaProjectionManager = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+
+        var iconColor by remember { mutableStateOf(Color.Black) }
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(3.seconds)
+                iconColor = if (screenCaptureSource == null) Color.Black else Color.Red
+            }
+        }
+
+        Box(
+            modifier = Modifier.clickable {
+                if (screenCaptureSource != null) stopScreenCaptureSource()
+                else screenCaptureLauncher.launch(mediaProjectionManager.createScreenCaptureIntent())
+            }
+        ) {
+            Canvas(modifier = Modifier.size(28.dp)) {
+                val strokeW = 3.dp.toPx()
+
+                drawCircle(
+                    color = iconColor,
+                    radius = size.minDimension / 4.5f
+                )
+
+                val arcPadding = strokeW / 2
+                val arcSize = size.minDimension - strokeW
+                val sweepAngle = 50f
+
+                for (i in 0..3) {
+                    val startAngle = (i * 90f) - (sweepAngle / 2f)
+
+                    drawArc(
+                        color = iconColor,
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = false,
+                        topLeft = Offset(arcPadding, arcPadding),
+                        size = Size(arcSize, arcSize),
+                        style = Stroke(width = strokeW, cap = StrokeCap.Butt)
+                    )
+                }
+            }
+        }
+    }
 }
