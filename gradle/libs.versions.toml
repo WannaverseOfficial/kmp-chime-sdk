@@ -5,7 +5,7 @@ compose = "1.12.1"
 agp = "9.4.1"
 activity = "1.13.0"
 
-spotless = "8.10.2"
+spotless = "8.10.3"
 
 [libraries]
 compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose" }
