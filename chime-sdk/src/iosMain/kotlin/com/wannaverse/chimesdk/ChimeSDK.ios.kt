@@ -236,7 +236,6 @@ actual class ChimeSDK(
 
     @Composable
     actual fun MeetingScreen() {
-        // Prevents screen from turning off during meeting
         UIApplication.sharedApplication().setIdleTimerDisabled(true)
 
         DisposableEffect(meetingSession.configuration().meetingId()) {
