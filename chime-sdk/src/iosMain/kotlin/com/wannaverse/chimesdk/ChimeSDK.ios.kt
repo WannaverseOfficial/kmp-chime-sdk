@@ -50,6 +50,7 @@ import platform.UIKit.NSLayoutAttributeNotAnAttribute
 import platform.UIKit.NSLayoutAttributeWidth
 import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.NSLayoutRelationEqual
+import platform.UIKit.UIApplication
 import platform.UIKit.UIView
 import platform.UIKit.UIViewContentMode
 import platform.darwin.NSObject
@@ -235,6 +236,8 @@ actual class ChimeSDK(
 
     @Composable
     actual fun MeetingScreen() {
+        UIApplication.sharedApplication().setIdleTimerDisabled(true)
+
         DisposableEffect(meetingSession.configuration().meetingId()) {
             val meetingSessionConfig = meetingSession.configuration()
             val meetingId = meetingSessionConfig.meetingId()
@@ -271,6 +274,8 @@ actual class ChimeSDK(
             }
 
             onDispose {
+                UIApplication.sharedApplication().setIdleTimerDisabled(false)
+
                 with(userDefaults) {
                     removeObjectForKey(userDefaultsMeetingIdKey)
                     removeObjectForKey(userDefaultsCredentialsKey)
