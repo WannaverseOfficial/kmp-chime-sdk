@@ -5,26 +5,25 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileState
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.TextureRenderView
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSession
 
+private fun VideoTileState.toVideoTileStateCommon() = VideoTileState(
+    tileId, attendeeId, videoStreamContentWidth, videoStreamContentHeight, isLocalTile, isContent
+)
+
 class VideoTileObserverImpl(
     private val meetingSession: MeetingSession,
-    private val onLocalTileAdded: (Int) -> Unit,
-    private val onLocalTileRemoved: () -> Unit,
-    private val onRemoteTileAdded: (Int) -> Unit,
-    private val onRemoteTileRemoved: () -> Unit
+    private val videoTileEventListener: VideoTileEventListener
 ) : VideoTileObserver {
     internal val localRenderView = TextureRenderView(ChimeSDK.activity)
-    private val remoteRenderView: MutableMap<Int, TextureRenderView> = mutableMapOf()
-
-    fun getRemoteRenderView(tileId: Int): TextureRenderView? = remoteRenderView[tileId]
+    internal val remoteRenderView = mutableMapOf<Int, TextureRenderView>()
 
     override fun onVideoTileAdded(tileState: VideoTileState) {
         if (tileState.isLocalTile) {
             meetingSession.audioVideo.bindVideoView(localRenderView, tileState.tileId)
-            onLocalTileAdded(tileState.tileId)
+            videoTileEventListener.onLocalVideoTileAdded(tileState.toVideoTileStateCommon())
         } else {
             remoteRenderView[tileState.tileId] = TextureRenderView(ChimeSDK.activity)
             meetingSession.audioVideo.bindVideoView(remoteRenderView[tileState.tileId]!!, tileState.tileId)
-            onRemoteTileAdded(tileState.tileId)
+            videoTileEventListener.onRemoteVideoTileAdded(tileState.toVideoTileStateCommon())
         }
     }
 
@@ -32,10 +31,10 @@ class VideoTileObserverImpl(
         meetingSession.audioVideo.unbindVideoView(tileState.tileId)
 
         if (tileState.isLocalTile) {
-            onLocalTileRemoved()
+            videoTileEventListener.onLocalVideoTileRemoved(tileState.toVideoTileStateCommon())
         } else {
             remoteRenderView -= tileState.tileId
-            onRemoteTileRemoved()
+            videoTileEventListener.onRemoteVideoTileRemoved(tileState.toVideoTileStateCommon())
         }
     }
 
