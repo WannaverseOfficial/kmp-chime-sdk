@@ -167,10 +167,7 @@ actual class ChimeSDK(
         onSessionError: (String, Boolean) -> Unit,
         selectedAudioInputDevice: String?,
         isJoiningOnMute: Boolean,
-        onLocalTileAdded: (Int) -> Unit,
-        onLocalTileRemoved: () -> Unit,
-        onRemoteTileAdded: (Int) -> Unit,
-        onRemoteTileRemoved: () -> Unit
+        videoTileEventListener: VideoTileEventListener
     ) {
         realTimeObserver = RealTimeObserverImpl(realTimeListener)
         meetingSession.audioVideo.addRealtimeObserver(realTimeObserver)
@@ -187,10 +184,7 @@ actual class ChimeSDK(
 
         videoTileObserver = VideoTileObserverImpl(
             meetingSession = meetingSession,
-            onLocalTileAdded = onLocalTileAdded,
-            onLocalTileRemoved = onLocalTileRemoved,
-            onRemoteTileAdded = onRemoteTileAdded,
-            onRemoteTileRemoved = onRemoteTileRemoved
+            videoTileEventListener = videoTileEventListener
         )
         meetingSession.audioVideo.addVideoTileObserver(videoTileObserver)
 
@@ -216,7 +210,7 @@ actual class ChimeSDK(
         meetingSession.audioVideo.startRemoteVideo()
     }
 
-    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
+    private var cameraCaptureSource by mutableStateOf<DefaultCameraCaptureSource?>(null)
 
     private fun stopCameraCaptureSource() {
         cameraCaptureSource?.torchEnabled = false
@@ -334,8 +328,8 @@ actual class ChimeSDK(
     actual fun stopLocalVideo() = stopCameraCaptureSource()
 
     @Composable
-    actual fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier) {
-        val mirror = remember(cameraFacing) { cameraFacing == CameraFacing.FRONT }
+    actual fun LocalVideoView(modifier: Modifier) {
+        val mirror = remember(cameraCaptureSource) { cameraCaptureSource?.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA }
 
         AndroidView(
             factory = {
@@ -351,7 +345,7 @@ actual class ChimeSDK(
     @Composable
     actual fun RemoteVideoView(tileId: Int, modifier: Modifier) = AndroidView(
         factory = {
-            videoTileObserver.getRemoteRenderView(tileId)
+            videoTileObserver.remoteRenderView[tileId]
                 ?: throw IllegalStateException("Remote view for tile $tileId not found")
         },
         modifier = modifier,

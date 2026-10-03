@@ -9,12 +9,19 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
+private fun VideoTileState.toVideoTileStateCommon() = VideoTileState(
+    tileId = tileId().toInt(),
+    attendeeId = attendeeId(),
+    videoStreamContentWidth = videoStreamContentWidth().toInt(),
+    videoStreamContentHeight = videoStreamContentHeight().toInt(),
+    isLocalTile = isLocalTile(),
+    isContent = isContent()
+)
+
+@OptIn(ExperimentalForeignApi::class)
 class VideoTileObserverImpl(
     private val meetingSession: DefaultMeetingSession,
-    private val onLocalTileAdded: (Int) -> Unit,
-    private val onLocalTileRemoved: () -> Unit,
-    private val onRemoteTileAdded: (Int) -> Unit,
-    private val onRemoteTileRemoved: () -> Unit
+    private val videoTileEventListener: VideoTileEventListener
 ) : NSObject(),
     VideoTileObserverProtocol {
     init {
@@ -23,36 +30,34 @@ class VideoTileObserverImpl(
         ).forceRegisterProtocol(this)
     }
 
-    internal val localRenderView: DefaultVideoRenderView = DefaultVideoRenderView()
-    private val remoteRenderView: MutableMap<Long, DefaultVideoRenderView> = mutableMapOf()
-
-    fun getRemoteView(tileId: Int): DefaultVideoRenderView? = remoteRenderView[tileId.toLong()]
+    internal val localRenderView = DefaultVideoRenderView()
+    internal val remoteRenderView = mutableMapOf<Int, DefaultVideoRenderView>()
 
     override fun videoTileDidAddWithTileState(tileState: VideoTileState) {
-        val tileId = tileState.tileId()
+        val tileId = tileState.tileId().toInt()
 
         if (tileState.isLocalTile()) {
             meetingSession.audioVideo()
-                .bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileId)
-            onLocalTileAdded(tileId.toInt())
+                .bindVideoViewWithVideoView(videoView = localRenderView, tileId = tileState.tileId())
+            videoTileEventListener.onLocalVideoTileAdded(tileState.toVideoTileStateCommon())
         } else {
             remoteRenderView[tileId] = DefaultVideoRenderView()
             meetingSession.audioVideo()
-                .bindVideoViewWithVideoView(videoView = remoteRenderView[tileId]!!, tileId = tileId)
-            onRemoteTileAdded(tileId.toInt())
+                .bindVideoViewWithVideoView(videoView = remoteRenderView[tileId]!!, tileId = tileState.tileId())
+            videoTileEventListener.onRemoteVideoTileAdded(tileState.toVideoTileStateCommon())
         }
     }
 
     override fun videoTileDidRemoveWithTileState(tileState: VideoTileState) {
-        val tileId = tileState.tileId()
+        val tileId = tileState.tileId().toInt()
 
-        meetingSession.audioVideo().unbindVideoViewWithTileId(tileId = tileId)
+        meetingSession.audioVideo().unbindVideoViewWithTileId(tileId = tileState.tileId())
 
         if (tileState.isLocalTile()) {
-            onLocalTileRemoved()
+            videoTileEventListener.onLocalVideoTileRemoved(tileState.toVideoTileStateCommon())
         } else if (remoteRenderView.containsKey(tileId)) {
             remoteRenderView -= tileId
-            onRemoteTileRemoved()
+            videoTileEventListener.onRemoteVideoTileRemoved(tileState.toVideoTileStateCommon())
         }
     }
 

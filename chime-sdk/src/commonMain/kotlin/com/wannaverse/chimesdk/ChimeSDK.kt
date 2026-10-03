@@ -61,7 +61,7 @@ expect class ChimeSDK {
      * @param onSessionError Invoked on session errors; [isRecoverable] indicates whether the SDK will retry.
      * @param selectedAudioInputDevice [AudioDevice.label] of the audio input device to use, or null to use the platform default.
      * @param isJoiningOnMute Whether to join with the microphone muted. Defaults to false.
-     * @param onLocalTileAdded Invoked with the local video tile ID once the local tile is bound, or null if unavailable.
+     * @param videoTileEventListener Callbacks for video tile state changes.
      */
     fun joinMeeting(
         realTimeListener: RealTimeEventListener,
@@ -72,10 +72,7 @@ expect class ChimeSDK {
         onSessionError: (String, Boolean) -> Unit,
         selectedAudioInputDevice: String?,
         isJoiningOnMute: Boolean,
-        onLocalTileAdded: (Int) -> Unit,
-        onLocalTileRemoved: () -> Unit,
-        onRemoteTileAdded: (Int) -> Unit,
-        onRemoteTileRemoved: () -> Unit
+        videoTileEventListener: VideoTileEventListener
     )
 
     /**
@@ -118,7 +115,7 @@ expect class ChimeSDK {
      * This function will have no effect if [joinMeeting] has not been called.
      */
     @Composable
-    fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier = Modifier)
+    fun LocalVideoView(modifier: Modifier = Modifier)
 
     /**
      * Composable that renders a remote participant's video tile.

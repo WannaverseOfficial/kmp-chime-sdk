@@ -5,7 +5,10 @@ package com.wannaverse.chimesdk
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -56,7 +59,7 @@ import platform.UIKit.UIViewContentMode
 import platform.darwin.NSObject
 import platform.darwin.nil
 
-// Due to a kotlin limitation we cannot create fields in companion objects of classes which extend from objc
+// Due to a kotlin limitation we cannot create fields in companion objects of classes which extend from NSObject
 private object CompanionObject {
     val logger = ConsoleLogger(name = "ChimeSDK", level = LogLevelINFO)
 
@@ -124,14 +127,6 @@ actual class ChimeSDK(
     private lateinit var activeSpeakerObserver: ActiveSpeakerObserverImpl
     private lateinit var dataMessageObserver: DataMessageObserverImpl
 
-    private var cameraCaptureSource: DefaultCameraCaptureSource? = null
-
-    private fun stopCameraCaptureSource() {
-        cameraCaptureSource?.setTorchEnabled(false)
-        cameraCaptureSource?.stop()
-        cameraCaptureSource = null
-    }
-
     actual fun getAvailableInputDevices(): List<AudioDevice> = meetingSession.audioVideo()
         .listAudioDevices()
         .mapNotNull { device ->
@@ -175,10 +170,7 @@ actual class ChimeSDK(
         onSessionError: (String, Boolean) -> Unit,
         selectedAudioInputDevice: String?,
         isJoiningOnMute: Boolean,
-        onLocalTileAdded: (Int) -> Unit,
-        onLocalTileRemoved: () -> Unit,
-        onRemoteTileAdded: (Int) -> Unit,
-        onRemoteTileRemoved: () -> Unit
+        videoTileEventListener: VideoTileEventListener
     ) {
         realtimeObserver = RealTimeObserverImpl(realTimeListener)
         meetingSession.audioVideo().addRealtimeObserverWithObserver(realtimeObserver)
@@ -193,12 +185,9 @@ actual class ChimeSDK(
 
         videoTileObserver = VideoTileObserverImpl(
             meetingSession = meetingSession,
-            onLocalTileAdded = onLocalTileAdded,
-            onLocalTileRemoved = onLocalTileRemoved,
-            onRemoteTileAdded = onRemoteTileAdded,
-            onRemoteTileRemoved = onRemoteTileRemoved
+            videoTileEventListener = videoTileEventListener
         )
-        meetingSession.audioVideo().addVideoTileObserverWithObserver(observer = videoTileObserver)
+        meetingSession.audioVideo().addVideoTileObserverWithObserver(videoTileObserver)
 
         audioVideoObserver = AudioVideoObserverImpl(
             meetingSession = meetingSession,
@@ -232,6 +221,14 @@ actual class ChimeSDK(
                 }
             }
         }
+    }
+
+    private var cameraCaptureSource by mutableStateOf<DefaultCameraCaptureSource?>(null)
+
+    private fun stopCameraCaptureSource() {
+        cameraCaptureSource?.setTorchEnabled(false)
+        cameraCaptureSource?.stop()
+        cameraCaptureSource = null
     }
 
     @Composable
@@ -318,7 +315,6 @@ actual class ChimeSDK(
     }
 
     actual fun startLocalVideo(cameraFacing: CameraFacing) {
-        meetingSession.audioVideo().startLocalVideoAndReturnError(error = null)
         val camera = MediaDevice.listVideoDevices()
             .filterIsInstance<MediaDevice>()
             .first {
@@ -339,8 +335,8 @@ actual class ChimeSDK(
     }
 
     @Composable
-    actual fun LocalVideoView(cameraFacing: CameraFacing, modifier: Modifier) {
-        val mirror = remember(cameraFacing) { cameraFacing == CameraFacing.FRONT }
+    actual fun LocalVideoView(modifier: Modifier) {
+        val mirror = remember(cameraCaptureSource) { cameraCaptureSource?.device()?.type() == MediaDeviceTypeVideoFrontCamera }
 
         UIKitView(
             factory = {
@@ -360,13 +356,10 @@ actual class ChimeSDK(
     @Composable
     actual fun RemoteVideoView(tileId: Int, modifier: Modifier) = UIKitView(
         factory = {
-            (
-                videoTileObserver.getRemoteView(tileId)
-                    ?: throw IllegalArgumentException("Remote view for tile $tileId not found")
-                ).apply {
+            videoTileObserver.remoteRenderView[tileId]?.apply {
                 contentMode = UIViewContentMode.UIViewContentModeScaleAspectFill
                 layer.masksToBounds = true
-            }
+            } ?: throw IllegalArgumentException("Remote view for tile $tileId not found")
         },
         modifier = modifier,
         update = {}
