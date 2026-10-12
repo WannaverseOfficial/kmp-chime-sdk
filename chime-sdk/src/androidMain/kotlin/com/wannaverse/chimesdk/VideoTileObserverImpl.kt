@@ -6,7 +6,12 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.TextureRend
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSession
 
 private fun VideoTileState.toVideoTileStateCommon() = VideoTileState(
-    tileId, attendeeId, videoStreamContentWidth, videoStreamContentHeight, isLocalTile, isContent
+    tileId = tileId,
+    attendeeId = attendeeId,
+    videoStreamContentWidth = videoStreamContentWidth,
+    videoStreamContentHeight = videoStreamContentHeight,
+    isLocalTile = isLocalTile,
+    isContent = isContent
 )
 
 class VideoTileObserverImpl(

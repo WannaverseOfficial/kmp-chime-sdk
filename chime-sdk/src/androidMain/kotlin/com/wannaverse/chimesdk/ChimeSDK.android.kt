@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.hardware.camera2.CameraManager
 import android.media.projection.MediaProjectionManager
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -333,7 +334,11 @@ actual class ChimeSDK(
 
         AndroidView(
             factory = {
-                videoTileObserver.localRenderView.apply { this.mirror = mirror }
+                videoTileObserver.localRenderView
+                    .apply {
+                        (this.parent as? ViewGroup)?.removeView(this)
+                        this.mirror = mirror
+                    }
             },
             modifier = modifier,
             update = {
@@ -343,14 +348,17 @@ actual class ChimeSDK(
     }
 
     @Composable
-    actual fun RemoteVideoView(tileId: Int, modifier: Modifier) = AndroidView(
-        factory = {
-            videoTileObserver.remoteRenderView[tileId]
-                ?: throw IllegalStateException("Remote view for tile $tileId not found")
-        },
-        modifier = modifier,
-        update = {}
-    )
+    actual fun RemoteVideoView(tileId: Int, modifier: Modifier) {
+        AndroidView(
+            factory = {
+                videoTileObserver.remoteRenderView[tileId]?.apply {
+                    (this.parent as? ViewGroup)?.removeView(this)
+                } ?: throw IllegalStateException("Remote view for tile $tileId not found")
+            },
+            modifier = modifier,
+            update = {}
+        )
+    }
 
     actual fun sendRealtimeMessage(topic: String, data: String, lifetimeMs: Long) = meetingSession.audioVideo.realtimeSendDataMessage(topic, data, lifetimeMs.toInt())
 
