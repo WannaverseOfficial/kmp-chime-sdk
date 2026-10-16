@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -71,6 +72,15 @@ kotlin {
                 )
             }
         }
+    }
+
+    swiftPMDependencies {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        swiftPackage(
+            url = url("https://github.com/aws/amazon-chime-sdk-ios-spm.git"),
+            version = exact("0.27.4"),
+            products = listOf(product("AmazonChimeSDK"), product("AmazonChimeSDKMedia"))
+        )
     }
 
     sourceSets {

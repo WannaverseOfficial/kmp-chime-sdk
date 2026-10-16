@@ -1,9 +1,12 @@
 [versions]
-kotlin = "2.4.21"
-compose = "1.12.1"
+kotlin = "2.5.0-Beta1"
+compose = "1.12.2"
 
 agp = "9.4.1"
 activity = "1.13.0"
+
+dokka = "2.2.0"
+publishing = "0.37.0"
 
 spotless = "8.10.4"
 
@@ -23,7 +26,7 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 
-dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
-publishing = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+publishing = { id = "com.vanniktech.maven.publish", version.ref = "publishing" }
 
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

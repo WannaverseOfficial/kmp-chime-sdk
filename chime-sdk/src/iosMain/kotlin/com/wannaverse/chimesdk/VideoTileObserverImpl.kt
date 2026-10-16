@@ -1,9 +1,9 @@
 package com.wannaverse.chimesdk
 
-import cocoapods.AmazonChimeSDK.DefaultMeetingSession
-import cocoapods.AmazonChimeSDK.DefaultVideoRenderView
-import cocoapods.AmazonChimeSDK.VideoTileObserverProtocol
-import cocoapods.AmazonChimeSDK.VideoTileState
+import swiftPMImport.com.wannaverse.chime.sdk.DefaultMeetingSession
+import swiftPMImport.com.wannaverse.chime.sdk.DefaultVideoRenderView
+import swiftPMImport.com.wannaverse.chime.sdk.VideoTileObserverProtocol
+import swiftPMImport.com.wannaverse.chime.sdk.VideoTileState
 import kotlin.collections.set
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject

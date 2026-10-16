@@ -1,14 +1,14 @@
 package com.wannaverse.chimesdk
 
-import cocoapods.AmazonChimeSDK.AudioVideoObserverProtocol
-import cocoapods.AmazonChimeSDK.DefaultMeetingSession
-import cocoapods.AmazonChimeSDK.MeetingSessionStatus
-import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeAudioCallEnded
-import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeAudioDisconnectAudio
-import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeAudioJoinedFromAnotherDevice
-import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeOk
-import cocoapods.AmazonChimeSDK.MeetingSessionStatusCodeVideoAtCapacityViewOnly
-import cocoapods.AmazonChimeSDK.RemoteVideoSource
+import swiftPMImport.com.wannaverse.chime.sdk.AudioVideoObserverProtocol
+import swiftPMImport.com.wannaverse.chime.sdk.DefaultMeetingSession
+import swiftPMImport.com.wannaverse.chime.sdk.MeetingSessionStatus
+import swiftPMImport.com.wannaverse.chime.sdk.MeetingSessionStatusCodeAudioCallEnded
+import swiftPMImport.com.wannaverse.chime.sdk.MeetingSessionStatusCodeAudioDisconnectAudio
+import swiftPMImport.com.wannaverse.chime.sdk.MeetingSessionStatusCodeAudioJoinedFromAnotherDevice
+import swiftPMImport.com.wannaverse.chime.sdk.MeetingSessionStatusCodeOk
+import swiftPMImport.com.wannaverse.chime.sdk.MeetingSessionStatusCodeVideoAtCapacityViewOnly
+import swiftPMImport.com.wannaverse.chime.sdk.RemoteVideoSource
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 
