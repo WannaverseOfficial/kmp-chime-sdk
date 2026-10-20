@@ -22,8 +22,5 @@ jobs:
           java-version: '21'
           distribution: 'oracle'
 
-      - name: Install CocoaPods dependencies
-        run: ./gradlew :chime-sdk:podInstall
-
       - name: Build with Gradle
         run: ./gradlew compileKotlinIosSimulatorArm64
