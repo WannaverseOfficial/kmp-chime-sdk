@@ -1,4 +1,0 @@
-language = Objective-C
-modules = AmazonChimeSDK
-package = cocoapods.AmazonChimeSDK
-linkerOpts = -framework AmazonChimeSDK
