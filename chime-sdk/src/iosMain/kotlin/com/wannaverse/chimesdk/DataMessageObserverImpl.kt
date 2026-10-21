@@ -1,8 +1,8 @@
 package com.wannaverse.chimesdk
 
-import cocoapods.AmazonChimeSDK.DataMessage
-import cocoapods.AmazonChimeSDK.DataMessageObserverProtocol
-import cocoapods.AmazonChimeSDK.DefaultMeetingSession
+import swiftPMImport.com.wannaverse.chime.sdk.DataMessage
+import swiftPMImport.com.wannaverse.chime.sdk.DataMessageObserverProtocol
+import swiftPMImport.com.wannaverse.chime.sdk.DefaultMeetingSession
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 

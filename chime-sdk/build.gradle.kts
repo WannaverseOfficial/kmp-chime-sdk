@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -7,11 +8,10 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.dokka)
     alias(libs.plugins.publishing)
-    kotlin("native.cocoapods")
 }
 
 group = "com.wannaverse"
-version = "0.5.1"
+version = "0.5.2"
 
 kotlin {
     jvmToolchain(21)
@@ -26,51 +26,16 @@ kotlin {
         }
     }
 
-    cocoapods {
-        summary = "KMP wrapper for Amazon ChimeSDK"
-        homepage = "https://github.com/WannaverseOfficial/kmp-chime-sdk"
-        version = project.version.toString()
-        ios.deploymentTarget = "15.0"
+    iosArm64()
+    iosSimulatorArm64()
 
-        pod("AmazonChimeSDK") {
-            version = "~> 0.27.0"
-            linkOnly = true
-        }
-    }
-
-    val podsDir = "${layout.buildDirectory.asFile.get()}/cocoapods/synthetic/ios/Pods"
-    val simSlice = "ios-arm64_x86_64-simulator"
-    val devSlice = "ios-arm64"
-
-    iosArm64 {
-        compilations["main"].cinterops {
-            create("AmazonChimeSDK") {
-                defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
-                packageName("cocoapods.AmazonChimeSDK")
-                compilerOpts(
-                    "-fmodules",
-                    "-F",
-                    "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$devSlice",
-                    "-F",
-                    "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$devSlice"
-                )
-            }
-        }
-    }
-    iosSimulatorArm64 {
-        compilations["main"].cinterops {
-            create("AmazonChimeSDK") {
-                defFile(project.file("src/nativeInterop/cinterop/AmazonChimeSDK.def"))
-                packageName("cocoapods.AmazonChimeSDK")
-                compilerOpts(
-                    "-fmodules",
-                    "-F",
-                    "$podsDir/AmazonChimeSDK/AmazonChimeSDK.xcframework/$simSlice",
-                    "-F",
-                    "$podsDir/AmazonChimeSDKMedia/AmazonChimeSDKMedia.xcframework/$simSlice"
-                )
-            }
-        }
+    swiftPMDependencies {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        swiftPackage(
+            url = url("https://github.com/aws/amazon-chime-sdk-ios-spm.git"),
+            version = exact("0.27.4"),
+            products = listOf(product("AmazonChimeSDK"), product("AmazonChimeSDKMedia"))
+        )
     }
 
     sourceSets {

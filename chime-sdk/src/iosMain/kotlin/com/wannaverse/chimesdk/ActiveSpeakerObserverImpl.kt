@@ -1,7 +1,7 @@
 package com.wannaverse.chimesdk
 
-import cocoapods.AmazonChimeSDK.ActiveSpeakerObserverProtocol
-import cocoapods.AmazonChimeSDK.AttendeeInfo
+import swiftPMImport.com.wannaverse.chime.sdk.ActiveSpeakerObserverProtocol
+import swiftPMImport.com.wannaverse.chime.sdk.AttendeeInfo
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSInteger
 import platform.darwin.NSObject

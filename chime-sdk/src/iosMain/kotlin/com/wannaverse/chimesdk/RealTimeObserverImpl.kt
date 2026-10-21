@@ -1,9 +1,9 @@
 package com.wannaverse.chimesdk
 
-import cocoapods.AmazonChimeSDK.AttendeeInfo
-import cocoapods.AmazonChimeSDK.RealtimeObserverProtocol
-import cocoapods.AmazonChimeSDK.SignalUpdate
-import cocoapods.AmazonChimeSDK.VolumeUpdate
+import swiftPMImport.com.wannaverse.chime.sdk.AttendeeInfo
+import swiftPMImport.com.wannaverse.chime.sdk.RealtimeObserverProtocol
+import swiftPMImport.com.wannaverse.chime.sdk.SignalUpdate
+import swiftPMImport.com.wannaverse.chime.sdk.VolumeUpdate
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 

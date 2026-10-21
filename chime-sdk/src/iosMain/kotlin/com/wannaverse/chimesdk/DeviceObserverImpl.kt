@@ -1,12 +1,12 @@
 package com.wannaverse.chimesdk
 
-import cocoapods.AmazonChimeSDK.DefaultMeetingSession
-import cocoapods.AmazonChimeSDK.DeviceChangeObserverProtocol
-import cocoapods.AmazonChimeSDK.MediaDevice
-import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBluetooth
-import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioBuiltInSpeaker
-import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioHandset
-import cocoapods.AmazonChimeSDK.MediaDeviceTypeAudioWiredHeadset
+import swiftPMImport.com.wannaverse.chime.sdk.DefaultMeetingSession
+import swiftPMImport.com.wannaverse.chime.sdk.DeviceChangeObserverProtocol
+import swiftPMImport.com.wannaverse.chime.sdk.MediaDevice
+import swiftPMImport.com.wannaverse.chime.sdk.MediaDeviceTypeAudioBluetooth
+import swiftPMImport.com.wannaverse.chime.sdk.MediaDeviceTypeAudioBuiltInSpeaker
+import swiftPMImport.com.wannaverse.chime.sdk.MediaDeviceTypeAudioHandset
+import swiftPMImport.com.wannaverse.chime.sdk.MediaDeviceTypeAudioWiredHeadset
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 
