@@ -2,7 +2,7 @@
 kotlin = "2.5.0-Beta2"
 compose = "1.12.2"
 
-agp = "9.4.1"
+agp = "9.5.0"
 activity = "1.13.0"
 
 dokka = "2.2.0"
