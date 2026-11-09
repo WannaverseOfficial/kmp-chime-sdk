@@ -5,7 +5,7 @@ compose = "1.12.2"
 agp = "9.5.1"
 activity = "1.13.0"
 
-dokka = "2.2.0"
+dokka = "2.3.0"
 publishing = "0.37.0"
 
 spotless = "8.11.0"
