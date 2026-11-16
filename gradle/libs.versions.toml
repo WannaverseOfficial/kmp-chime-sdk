@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.5.0-Beta2"
+kotlin = "2.5.0-RC"
 compose = "1.12.2"
 
 agp = "9.5.1"
